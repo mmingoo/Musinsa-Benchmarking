@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.avengers.musinsa.mapper.ProductVariantMapper">
+    <select id="findProductVariantByOptionName" resultType="com.avengers.musinsa.domain.product.dto.response.ProductVariantDto">
+        select product_variant_id as productVariantId,
+               PRODUCT_ID as productId,
+               variant_name as variantName,
+               price as price,
+               stock_quantity as stockQuantity,
+               size_value as sizeValue,
+               color_value as colorValue,
+               material_value as  materialValue,
+               extra_price as extraPrice
+        from product_variants
+        where product_id = #{productId} and variant_name = #{optionName}
+    </select>
+
+    <update id="decrementStock">
+        UPDATE product_variants
+        SET stock_quantity = stock_quantity - #{quantity}
+        WHERE product_variant_id = #{productVariantId}
+    </update>
+</mapper>

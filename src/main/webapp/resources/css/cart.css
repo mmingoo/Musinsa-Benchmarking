@@ -1,0 +1,412 @@
+/* General Body & Main Content Styles */
+
+body {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.container {
+    background: #fafafa;
+    width: 100%;
+    max-width: 1400px; /* 헤더와 동일 */
+    margin: 0 auto;
+    padding: 25px 30px 20px 30px; /* 상 10px, 좌우 20px, 하 20px */ /* 헤더 패딩과 동일하게 맞춰도 됨 */
+    border: 1px solid #e9ecef;
+    box-sizing: border-box;
+}
+/* 이하 장바구니 전용 스타일 그대로 유지 */
+.page-title {
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 6px
+}
+
+.summary-sub {
+    color: #868e96;
+    font-size: 13px
+}
+
+.grid {
+    display: grid;
+    grid-template-columns:1fr 360px;
+    gap: 24px;
+    margin-top: 12px
+}
+
+@media (max-width: 1024px) {
+    .grid {
+        grid-template-columns:1fr
+    }
+}
+
+.bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background: #fff
+}
+
+.bar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px
+}
+
+.muted {
+    color: #9aa1a7;
+    font-size: 13px
+}
+
+.btn-ghost {
+    border: 1px solid #ddd;
+    background: #fff
+}
+
+.btn-ghost.small {
+    padding: 6px 10px;
+    font-size: 12px
+}
+
+.list {
+    margin-top: 12px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff
+}
+
+.brand-row {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f3f5;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff
+}
+
+.brand-name {
+    font-weight: 700
+}
+
+.items {
+    display: flex;
+    flex-direction: column
+}
+
+.item {
+    display: grid;
+    grid-template-columns:24px 84px 1fr 24px;
+    gap: 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f6f7f8
+}
+
+.item:last-child {
+    border-bottom: 0
+}
+
+.thumb {
+    width: 72px;
+    height: 72px;
+    overflow: hidden;
+}
+
+.thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+
+.name {
+    font-weight: 500;
+    font-size: 13px
+}
+
+.name a {
+    color: inherit;
+}
+
+.name a:hover {
+    color: dimgray;
+}
+
+.meta {
+    color: #98a1a8;
+    font-size: 13px;
+    margin-top: 2px
+}
+
+.price {
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 8px
+}
+
+.row-ctrls {
+    grid-column: 1 / -1;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-opt {
+    border-radius: 5px;
+    margin-left: 0;
+    margin-bottom: 15px;
+    margin-right: 0;
+    width: 850px;
+    height: 25px;
+}
+
+.x-btn {
+    opacity: .6;
+    cursor: pointer;
+}
+
+.x-btn:hover {
+    opacity: 1
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+.checkbox input {
+    width: 16px;
+    height: 16px
+}
+
+.right {
+    position: relative
+}
+
+.sticky {
+    position: sticky;
+    top: 16px
+}
+
+.panel {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 16px 16px 10px
+}
+
+.panel h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px
+}
+
+.kv {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0
+}
+
+.kv .k {
+    color: #616a73
+}
+
+.kv .v {
+    font-weight: 600
+}
+
+.big {
+    font-size: 18px
+}
+
+.emph {
+    color: #e03131;
+    font-weight: 800
+}
+
+.hint {
+    color: #9aa1a7;
+    font-size: 12px
+}
+
+.divider {
+    height: 1px;
+    background: #f1f3f5;
+    margin: 12px 0
+}
+
+.coupon-panel {
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    background: #f8f9fa
+}
+
+.notice {
+    margin-top: 12px
+}
+
+.banner {
+    margin-top: 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 12px;
+    background: #f8f9ff
+}
+
+.help {
+    font-size: 12px;
+    color: #66707a
+}
+
+.chip {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid #e9ecef;
+    border-radius: 999px;
+    font-size: 11px;
+    color: #66707a;
+    margin-left: 6px
+}
+
+.badge-free {
+    color: #2f9e44;
+    border-color: #b2f2bb
+}
+
+.badge-fast {
+    color: #1c7ed6;
+    border-color: #a5d8ff
+}
+
+.btn-ghost {
+    cursor: pointer;
+}
+
+/* --- modal --- */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+}
+
+.modal.is-open {
+    display: block;
+}
+
+.modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .35);
+}
+
+.modal-sheet {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(560px, 92vw);
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .15);
+}
+
+.modal-header, .modal-footer {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.modal-footer {
+    border-top: 1px solid #f1f3f5;
+    border-bottom: none;
+}
+
+.modal-body {
+    padding: 14px;
+    max-height: 65vh;
+    overflow: auto;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.modal .chip {
+    margin-left: 6px;
+}
+
+.modal input[type="text"], .modal input[type="number"], .modal select {
+    padding: 8px 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+/* --- option picker --- */
+.opt-group {
+}
+
+.opt-group-title {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.opt-list {
+    max-height: 220px;
+    overflow: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+}
+
+.opt-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.opt-item:last-child {
+    border-bottom: none;
+}
+
+.opt-item.is-selected {
+    background: #f1f3ff;
+    font-weight: 600;
+}
+
+.opt-item.is-disabled {
+    color: #adb5bd;
+    cursor: not-allowed;
+    background: #f8f9fa;
+}
+
+.paymentBtn {
+    display: block;
+    width: 100%; /* 패널의 내용 영역 너비를 꽉 채움 */
+    height: 56px; /* 원하는 높이 (48~56 추천) */
+    margin-top: 12px; /* 위 여백만 주고 좌우는 0 */
+    padding: 0 16px; /* 텍스트 좌우 여백 */
+    font-size: 18px;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px; /* 패널 스타일에 맞춰 둥글게 */
+    background: #212529; /* 컬러는 취향대로 */
+    color: #fff;
+    cursor: pointer;
+    box-sizing: border-box;
+}

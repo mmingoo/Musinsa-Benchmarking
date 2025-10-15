@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.avengers.musinsa.mapper.ReviewMapper">
+    <update id="updateReviewStatus">
+        UPDATE PRODUCT_REVIEW_STATS
+        SET REVIEW_COUNT  = REVIEW_COUNT + #{countDelta},
+            TOTAL_REVIEWS = TOTAL_REVIEWS + #{ratingDelta},
+            RATING_AVG    = ROUND((TOTAL_REVIEWS + #{ratingDelta}) / NULLIF((REVIEW_COUNT + #{countDelta}), 0), 2)
+        WHERE PRODUCT_ID = #{productId}
+    </update>
+
+    <select id="findReviewMetaById" parameterType="long"
+            resultType="com.avengers.musinsa.domain.review.dto.ReviewMeta">
+        SELECT PRODUCT_ID AS productId,
+               RATING     AS rating
+        FROM REVIEWS
+        WHERE REVIEW_ID = #{reviewId}
+    </select>
+</mapper>

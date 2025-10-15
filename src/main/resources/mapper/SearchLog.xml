@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.avengers.musinsa.mapper.SearchMapper">
+    <insert id="insertSearchLog" parameterType="com.avengers.musinsa.domain.search.entity.SearchLog">
+        <selectKey keyProperty="searchLogId" resultType="Long" order="BEFORE">
+            SELECT seq_search_logs.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO search_logs (
+        search_log_id,
+        search_text,
+        search_count,
+        user_id,
+        search_datetime
+        ) VALUES (
+        #{searchLogId},
+        #{searchText},
+        #{searchCount},
+        #{userId},
+        CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <insert id="insertSearchBrandLog"
+            parameterType="com.avengers.musinsa.domain.search.dto.SearchSaveDto$searchBrandLogSaveDto">
+        <selectKey keyProperty="searchBrandLogSaveId" resultType="Long" order="BEFORE">
+            select seq_search_keyword_logs.nextval from dual
+        </selectKey>
+        insert into search_brand_logs(
+        search_brand_log_id,
+        search_brand_id,
+        user_id,
+        search_datetime
+        )values (
+        #{searchBrandLogSaveId},
+        #{brandId},
+        #{userId},
+        current_timestamp
+        )
+    </insert>
+    <insert id="insertSearchKeywordLog"
+            parameterType="com.avengers.musinsa.domain.search.dto.SearchSaveDto$searchKeywordLogSaveDto">
+        <selectKey keyProperty="searchKeywordLogSaveId" resultType="Long" order="BEFORE">
+            select seq_search_keyword_logs.nextval from dual
+        </selectKey>
+        insert into search_keyword_logs(
+        search_keyword_log_id,
+        search_text,
+        user_id,
+        search_datetime
+        )values(
+        #{searchKeywordLogSaveId},
+        #{searchText},
+        #{userId},
+        current_timestamp
+        )
+    </insert>
+
+    <delete id="deleteRecentSearches">
+        DELETE FROM search_keyword_logs
+        WHERE user_id = #{userId}
+    </delete>
+
+    <delete id="deleteRecentSearchKeyword">
+        DELETE FROM search_keyword_logs
+        WHERE user_id = #{userId}
+          AND search_text = #{keyword}
+    </delete>
+</mapper>

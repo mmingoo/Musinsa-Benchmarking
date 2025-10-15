@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.avengers.musinsa.mapper.ProductMapper">
+    <resultMap id="ProductDetailResultMap"
+               type="com.avengers.musinsa.domain.product.dto.response.ProductDetailResponse">
+        <result property="productId" column="productId"/>
+        <result property="productName" column="productName"/>
+        <result property="productLikeCnt" column="productLikeCnt"/>
+        <result property="price" column="price"/>
+        <result property="brandDiscount" column="brandDiscount"/>
+        <result property="finalprice" column="finalprice"/>
+        <result property="detailSizeImage" column="detailSizeImage"/>
+        <result property="isProductLiked" column="isProductLiked" javaType="java.lang.Boolean"/>
+        <result property="isBrandLiked" column="isBrandLiked" javaType="java.lang.Boolean"/>
+        <result property="brandId" column="brandId"/>
+        <result property="brandName" column="brandName"/>
+        <result property="brandLikeCnt" column="brandLikeCnt"/>
+        <result property="brandImage" column="brandImage"/>
+        <result property="sizeDetailImageId" column="sizeDetailImageId"/>
+        <result property="productSizeDetailImageURL" column="productSizeDetailImageURL"/>
+    </resultMap>
+
+    <select id="findProductById" resultMap="ProductDetailResultMap">
+        SELECT p.product_id                                                AS productId,
+               p.product_name                                              AS productName,
+
+               p.product_likes                                             AS productLikeCnt,
+               p.price,
+               b.brand_id                                                  AS brandId,
+               b.brand_name_kr                                             AS brandName,
+               b.brand_likes                                               AS brandLikeCnt,
+               b.BRAND_DISCOUNT                                            AS brandDiscount,
+               b.BRAND_IMAGE                                               AS brandImage,
+               FLOOR(((100 - b.BRAND_DISCOUNT) / 100) * p.price / 10) * 10 AS finalprice,
+               p.DETAIL_SIZE_IMAGE                                         AS detailSizeImage,
+               p.SIZE_DETAIL_IMAGE_ID                                      AS sizeDetailImageId,
+               SDI.IMAGE                                                   AS productSizeDetailImageURL,
+               CASE WHEN ubl.LIKED = 1 THEN 1 ELSE 0 END                   AS isBrandLiked,
+               CASE WHEN upl.LIKED = 1 THEN 1 ELSE 0 END                   AS isProductLiked
+        FROM products p
+                 JOIN
+             brands b ON p.brand_id = b.brand_id
+                 JOIN
+             SIZE_DETAIL_IMAGES SDI ON p.SIZE_DETAIL_IMAGE_ID = SDI.SIZE_DETAIL_IMAGE_ID
+                 LEFT JOIN USER_BRAND_LIKES ubl
+                           ON ubl.brand_id = b.brand_id
+                               AND ubl.user_id = #{userId}
+                 LEFT JOIN USER_PRODUCT_LIKES upl
+                           ON upl.PRODUCT_ID = p.PRODUCT_ID
+                               AND upl.user_id = #{userId}
+        WHERE p.product_id = #{productId}
+    </select>
+
+    <select id="findProductImageById"
+            resultType="com.avengers.musinsa.domain.product.entity.ProductImage">
+        SELECT PRODUCT_IMAGE_ID AS productImageId,
+               IMAGE_URL        AS imageUrl,
+               IMAGE_TYPE       AS imageType
+        FROM PRODUCT_IMAGES
+        WHERE PRODUCT_ID = #{productId}
+
+    </select>
+
+    <select id="findProductOptionColors" resultType="java.lang.String">
+        SELECT DISTINCT COLOR_VALUE
+        FROM PRODUCT_VARIANTS
+        WHERE PRODUCT_ID = #{productId}
+          AND COLOR_VALUE IS NOT NULL
+    </select>
+
+    <select id="findProductOptionMaterials" resultType="java.lang.String">
+
+        SELECT DISTINCT MATERIAL_VALUE
+        FROM PRODUCT_VARIANTS
+        WHERE product_id = #{productId}
+          AND MATERIAL_VALUE IS NOT NULL
+    </select>
+
+    <select id="findProductOptionSizes" resultType="java.lang.String">
+        SELECT DISTINCT SIZE_VALUE
+        FROM PRODUCT_VARIANTS
+        WHERE product_id = #{productId}
+          AND SIZE_VALUE IS NOT NULL
+        ORDER BY CASE SIZE_VALUE
+                     WHEN 'XS' THEN 1
+                     WHEN 'S' THEN 2
+                     WHEN 'M' THEN 3
+                     WHEN 'L' THEN 4
+                     WHEN 'XL' THEN 5
+                     WHEN 'XXL' THEN 6
+                     WHEN 'FREE' THEN 7
+                     ELSE 8
+                     END
+    </select>
+
+    <resultMap id="RecommendationResultMap"
+               type="com.avengers.musinsa.domain.product.dto.response.RecommendationResponse">
+        <result property="productId" column="productId"/>
+        <result property="brandId" column="brandId"/>
+        <result property="productName" column="productName"/>
+        <result property="productBrand" column="productBrand"/>
+        <result property="productPrice" column="productPrice"/>
+        <result property="productImage" column="productImage"/>
+        <result property="discountRate" column="discountRate"/>
+        <result property="isLiked" column="isLiked" javaType="java.lang.Boolean"/>
+    </resultMap>
+
+    <select id="getRecommendationProductList" resultMap="RecommendationResultMap">
+        WITH global_rating AS (SELECT NVL(AVG(r.rating), 0) AS C, 10 AS m
+        FROM REVIEWS r)
+
+        SELECT p.product_id AS productId,
+        b.brand_id AS brandId,
+        p.product_name AS productName,
+        b.brand_name_kr AS productBrand,
+        FLOOR(((100 - b.BRAND_DISCOUNT) / 100) * p.price / 10) * 10 AS productPrice,
+        img.image_url AS productImage,
+        b.brand_discount as discountRate,
+        CASE WHEN upl.LIKED = 1 THEN 1 ELSE 0 END AS isLiked
+
+        FROM products p
+        JOIN brands b
+        ON b.brand_id = p.brand_id
+
+        LEFT JOIN product_images img
+        ON p.product_id = img.product_id
+        AND img.image_type = 'MAIN'
+
+        LEFT JOIN USER_PRODUCT_LIKES upl
+        ON upl.PRODUCT_ID = p.PRODUCT_ID
+        AND upl.user_id = #{userId, jdbcType=VARCHAR}
+
+        LEFT JOIN (SELECT oi.PRODUCT_ID, SUM(oi.QUANTITY) AS total_sales
+        FROM ORDER_ITEMS oi
+        JOIN ORDERS O
+        ON o.ORDER_ID = oi.ORDER_ID
+        AND o.ORDER_STATUS IN ('PAID', 'COMPLETED')
+        GROUP BY oi.PRODUCT_ID) tp
+        ON tp.PRODUCT_ID = p.PRODUCT_ID
+
+        LEFT JOIN (SELECT r.PRODUCT_ID, COUNT(*) AS review_count, AVG(r.RATING) AS review_rating
+        FROM REVIEWS r
+        GROUP BY r.PRODUCT_ID) rp
+        ON rp.PRODUCT_ID = p.PRODUCT_ID
+
+        LEFT JOIN (SELECT upl.PRODUCT_ID, COUNT(*) AS like_count
+        FROM USER_PRODUCT_LIKES upl
+        GROUP BY upl.PRODUCT_ID) lp
+        ON lp.PRODUCT_ID = p.PRODUCT_ID
+
+        CROSS JOIN global_rating gr
+
+        WHERE p.gender = #{gender}
+        ORDER BY (
+        NVL(tp.total_sales, 0) * 0.3 +
+        NVL(rp.review_count, 0) * 0.2 +
+        NVL(lp.like_count, 0) * 0.2 +
+        <!-- 베이지안 평점 * 0.4 -->
+        (
+        (NVL(rp.review_count, 0) / (NVL(rp.review_count, 0) + gr.m)) * NVL(rp.review_rating, gr.C) +
+        (gr.m / (NVL(rp.review_count, 0) + gr.m)) * gr.C
+        ) * 0.4
+        ) DESC,
+        p.created_at DESC
+        FETCH FIRST 32 ROWS ONLY
+    </select>
+
+    <select id="findOptionsByProductIds"
+            resultType="com.avengers.musinsa.domain.product.dto.ProductOptionRow">
+        SELECT p.PRODUCT_ID AS productId,
+        ot.OPTION_TYPE AS optionType,
+        CASE
+        WHEN ot.OPTION_TYPE_ID = 1 THEN pv.COLOR_VALUE
+        WHEN ot.OPTION_TYPE_ID = 2 THEN pv.SIZE_VALUE
+        WHEN ot.OPTION_TYPE_ID = 3 THEN pv.MATERIAL_VALUE
+        END AS value
+        FROM PRODUCTS p
+        JOIN PRODUCT_OPTION_TYPES pot ON p.PRODUCT_ID = pot.PRODUCT_ID
+        LEFT JOIN OPTION_TYPES ot ON pot.OPTION_TYPE_ID = ot.OPTION_TYPE_ID
+        LEFT JOIN PRODUCT_VARIANTS pv ON p.PRODUCT_ID = pv.PRODUCT_ID
+        WHERE p.PRODUCT_ID IN
+        <foreach collection="productIds" item="productId" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
+    </select>
+
+    <resultMap id="ProductByCategoryResultMap"
+               type="com.avengers.musinsa.domain.product.dto.response.ProductByCategoryResponse">
+        <result property="productId" column="productId"/>
+        <result property="productName" column="productName"/>
+        <result property="productImage" column="productImage"/>
+        <result property="brandName" column="brandName"/>
+        <result property="price" column="price"/>
+        <result property="productLikes" column="productLikes"/>
+        <result property="ratingAverage" column="ratingAverage"/>
+        <result property="reviewCount" column="reviewCount"/>
+        <result property="isLiked" column="isLiked" javaType="java.lang.Boolean"/>
+    </resultMap>
+
+    <select id="getProductsByCategory" resultMap="ProductByCategoryResultMap">
+        SELECT ranked_products.product_id as productId,
+        ranked_products.product_name as productName,
+        pimg.image_url as productImage,
+        b.brand_name_kr as brandName,
+        ranked_products.price as price,
+        ranked_products.product_likes as productLikes,
+        ranked_products.rating_avg as ratingAverage,
+        ranked_products.review_count as reviewCount,
+        ranked_products.recommendation_score as recommendationScore,
+        CASE WHEN upl.LIKED = 1 THEN 1 ELSE 0 END AS isLiked
+
+        FROM (SELECT p.product_id,
+        p.product_name,
+        p.brand_id,
+        p.price,
+        p.product_likes,
+        prs.rating_avg,
+        prs.review_count,
+        -- 가중치 계산
+        (
+        NVL(order_stats.total_orders, 0) * 10.0 +
+        NVL(prs.rating_avg, 3.0) * 5.0 +
+        NVL(p.product_likes, 0) * 2.0
+        ) AS recommendation_score
+        FROM products p
+
+        -- 주문 통계 (상품별 총 주문 수)
+        LEFT JOIN (SELECT oi.product_id, COUNT(oi.order_item_id) AS total_orders
+        FROM order_items oi
+        JOIN orders o ON o.order_id = oi.order_id
+        WHERE o.order_status NOT IN ('취소', '반품완료')
+        GROUP BY oi.product_id) order_stats
+        ON order_stats.product_id = p.product_id
+
+        -- 리뷰 평점 통계
+        LEFT JOIN (SELECT prs.product_id, prs.review_count, prs.rating_avg
+        FROM product_review_stats prs) prs ON p.product_id = prs.product_id
+        WHERE p.product_category_id = #{categoryId}) ranked_products
+        JOIN brands b
+        ON b.brand_id = ranked_products.brand_id
+        JOIN product_images pimg ON pimg.product_id = ranked_products.product_id
+        LEFT JOIN USER_PRODUCT_LIKES upl
+        ON upl.PRODUCT_ID = ranked_products.product_id
+        AND upl.user_id = #{userId}
+
+        WHERE pimg.image_type = 'MAIN'
+        <choose>
+            <when test="sortBy == 'PRICE_LOW'">
+                ORDER BY ranked_products.price ASC
+            </when>
+            <when test="sortBy == 'PRICE_HIGH'">
+                ORDER BY ranked_products.price DESC
+            </when>
+            <when test="sortBy == 'LIKE'">
+                ORDER BY ranked_products.product_likes DESC
+            </when>
+            <otherwise>
+                ORDER BY ranked_products.recommendation_score DESC
+            </otherwise>
+        </choose>
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <!-- 커서 기반 페이지네이션 -->
+    <select id="getProductsByCategoryCursor" resultMap="ProductByCategoryResultMap">
+        SELECT ranked_products.product_id as productId,
+        ranked_products.product_name as productName,
+        pimg.image_url as productImage,
+        b.brand_name_kr as brandName,
+        ranked_products.price as price,
+        ranked_products.product_likes as productLikes,
+        ranked_products.rating_avg as ratingAverage,
+        ranked_products.review_count as reviewCount,
+        ranked_products.recommendation_score as recommendationScore,
+        CASE WHEN upl.LIKED = 1 THEN 1 ELSE 0 END AS isLiked
+
+        FROM (SELECT p.product_id,
+        p.product_name,
+        p.brand_id,
+        p.price,
+        p.product_likes,
+        prs.rating_avg,
+        prs.review_count,
+        -- 가중치 계산
+        (
+        NVL(order_stats.total_orders, 0) * 10.0 +
+        NVL(prs.rating_avg, 3.0) * 5.0 +
+        NVL(p.product_likes, 0) * 2.0
+        ) AS recommendation_score
+        FROM products p
+
+        -- 주문 통계 (상품별 총 주문 수)
+        LEFT JOIN (SELECT oi.product_id, COUNT(oi.order_item_id) AS total_orders
+        FROM order_items oi
+        JOIN orders o ON o.order_id = oi.order_id
+        WHERE o.order_status NOT IN ('취소', '반품완료')
+        GROUP BY oi.product_id) order_stats
+        ON order_stats.product_id = p.product_id
+
+        -- 리뷰 평점 통계
+        LEFT JOIN (SELECT prs.product_id, prs.review_count, prs.rating_avg
+        FROM product_review_stats prs) prs ON p.product_id = prs.product_id
+        WHERE p.product_category_id = #{categoryId}) ranked_products
+        JOIN brands b
+        ON b.brand_id = ranked_products.brand_id
+        JOIN product_images pimg ON pimg.product_id = ranked_products.product_id
+        LEFT JOIN USER_PRODUCT_LIKES upl
+        ON upl.PRODUCT_ID = ranked_products.product_id
+        AND upl.user_id = #{userId}
+
+        WHERE pimg.image_type = 'MAIN'
+        <if test="lastId != null">
+            AND (
+            <choose>
+                <when test="sortBy == 'PRICE_LOW'">
+                    ranked_products.price > #{lastValue}
+                    OR (ranked_products.price = #{lastValue} AND ranked_products.product_id > #{lastId})
+                </when>
+                <when test="sortBy == 'PRICE_HIGH'">
+                    ranked_products.price &lt; #{lastValue}
+                    OR (ranked_products.price = #{lastValue} AND ranked_products.product_id &lt; #{lastId})
+                </when>
+                <when test="sortBy == 'LIKE'">
+                    ranked_products.product_likes &lt; #{lastValue}
+                    OR (ranked_products.product_likes = #{lastValue} AND ranked_products.product_id &lt; #{lastId})
+                </when>
+            </choose>
+            )
+        </if>
+        <choose>
+            <when test="sortBy == 'PRICE_LOW'">
+                ORDER BY ranked_products.price ASC, ranked_products.product_id ASC
+            </when>
+            <when test="sortBy == 'PRICE_HIGH'">
+                ORDER BY ranked_products.price DESC, ranked_products.product_id DESC
+            </when>
+            <when test="sortBy == 'LIKE'">
+                ORDER BY ranked_products.product_likes DESC, ranked_products.product_id DESC
+            </when>
+        </choose>
+        FETCH FIRST #{size} ROWS ONLY
+    </select>
+
+    <select id="getProductReviews"
+            resultType="com.avengers.musinsa.domain.product.dto.response.ProductReviewsResponse">
+        SELECT r.REVIEW_ID        AS reviewId,
+               r.NICKNAME         AS nickName,
+               r.CONTENT          AS content,
+               r.PURCHASE_OPTIONS AS purchaseOptions,
+               r.HELP_COUNT       AS helpCount,
+               r.RATING           AS rating
+        FROM REVIEWS r
+        WHERE r.PRODUCT_ID =
+              #{productId}
+        ORDER BY r.CREATED_AT
+            DESC
+    </select>
+
+    <insert id="createProductReview">
+        INSERT INTO REVIEWS
+        (REVIEW_ID, PRODUCT_ID, USER_ID, NICKNAME, CONTENT, PURCHASE_OPTIONS, HELP_COUNT, RATING)
+        SELECT SEQ_REVIEWS.nextval,
+               #{productId},
+               #{userId},
+               (SELECT NICKNAME
+                FROM USERS
+                WHERE USER_ID = #{userId}) AS NICKNAME,
+               #{request.content},
+               #{request.purchaseOption},
+               0,
+               #{request.rating}
+    </insert>
+
+    <update id="updateProductReview">
+        UPDATE REVIEWS
+        SET CONTENT          = #{request.content},
+            PURCHASE_OPTIONS = #{request.purchaseOption},
+            RATING           = #{request.rating}
+        WHERE REVIEW_ID = #{reviewId}
+    </update>
+
+    <delete id="deleteProductReview">
+        DELETE REVIEWS
+        WHERE REVIEW_ID = #{reviewId}
+    </delete>
+
+
+    <!--상의 실측 사이즈 조회-->
+    <select id="getTopProductDetailSizeList"
+            resultType="com.avengers.musinsa.domain.product.dto.response.TopProductDetailSizeListResponse">
+        SELECT TSD.TOP_SIZE_DETAIL_ID AS topSizeDetailId,
+               p.SIZE_DETAIL_IMAGE_ID AS sizeDetailImageId,
+               TO_CHAR(TSD.CM)        AS cm,
+               TSD.LENGTH             AS length,
+               TSD.SHOULDER_WIDTH     AS shoulderWidth,
+               TSD.CHEST_WIDTH        AS chestWidth,
+               TSD.SLEAVE_LENGTH      AS sleaveLength
+        FROM TOP_SIZE_DETAILS TSD
+                 JOIN PRODUCTS p ON p.PRODUCT_ID = TSD.PRODUCT_ID
+        WHERE TSD.PRODUCT_ID = #{productId}
+        ORDER BY CASE CM
+                     WHEN 'XS' THEN 1
+                     WHEN 'S' THEN 2
+                     WHEN 'M' THEN 3
+                     WHEN 'L' THEN 4
+                     WHEN 'XL' THEN 5
+                     WHEN 'XXL' THEN 6
+                     WHEN 'FREE' THEN 7
+                     ELSE 8
+                     END
+    </select>
+
+    <!--하의 실측 사이즈 조회-->
+    <select id="getBottomProductDetailSizeList"
+            resultType="com.avengers.musinsa.domain.product.dto.response.BottomProductDetailSizeListResponse">
+        SELECT BSD.BOTTOM_SIZE_DETAIL_ID AS BottomProductDetailSizeId,
+               p.SIZE_DETAIL_IMAGE_ID    AS sizeDetailImageId,
+               TO_CHAR(BSD.CM)           AS cm,
+               BSD.LENGTH                AS length,
+               BSD.WAIST                 AS waist,
+               BSD.hip                   AS hip,
+               BSD.THIGH                 AS thigh,
+               BSD.RISE                  AS rise,
+               BSD.HEM_WIDTH             AS hemWidth
+        FROM BOTTOM_SIZE_DETAILS BSD
+                 JOIN PRODUCTS p ON p.PRODUCT_ID = BSD.PRODUCT_ID
+        WHERE BSD.PRODUCT_ID = #{productId}
+
+        ORDER BY CASE CM
+                     WHEN 'XS' THEN 1
+                     WHEN 'S' THEN 2
+                     WHEN 'M' THEN 3
+                     WHEN 'L' THEN 4
+                     WHEN 'XL' THEN 5
+                     WHEN 'XXL' THEN 6
+                     WHEN 'FREE' THEN 7
+                     ELSE 8
+                     END
+    </select>
+
+    <select id="getProductCategories"
+            resultType="com.avengers.musinsa.domain.product.dto.response.ProductCategoryListResponse">
+        SELECT PRODUCT_ID   AS productId,
+               PRODUCT_NAME AS productName
+        FROM PRODUCTS
+        WHERE PRODUCT_ID = #{productId}
+    </select>
+
+    <select id="getProductCategoriesList"
+            resultType="com.avengers.musinsa.domain.product.entity.ProductCategory">
+        SELECT PRODUCT_CATEGORY_ID        AS productCategoryId,
+               PARENT_PRODUCT_CATEGORY_ID AS parentProductCategoryId,
+               CATEGORY_NAME              AS categoryName,
+               CATEGORY_LEVEL             AS categoryLevel
+        FROM PRODUCT_CATEGORIES
+        START WITH PRODUCT_CATEGORY_ID = (SELECT PRODUCT_CATEGORY_ID
+                                          FROM PRODUCTS
+                                          WHERE PRODUCT_ID = #{productId})
+        CONNECT BY PRIOR parent_product_category_id = product_category_id
+        ORDER BY CATEGORY_LEVEL
+    </select>
+
+
+    <select id="getProductDetailDescription"
+            resultType="com.avengers.musinsa.domain.product.dto.response.ProductDetailDescriptionResponse">
+        SELECT DETAIL_DESCRIPTION AS detailDescription
+        FROM PRODUCTS
+        WHERE PRODUCT_ID = #{productId}
+
+    </select>
+
+
+    <select id="findByBrandName" resultType="com.avengers.musinsa.domain.brand.dto.response.BrandResponse">
+        SELECT brand_id       as brandId,
+               brand_name_kr  as brandNameKr,
+               brand_name_eng as brandNameEn,
+               brand_image    as brandImage,
+               brand_likes    as brandLikes
+        FROM brands
+        WHERE brand_name_kr = #{keyword}
+           OR brand_name_eng = #{keyword} LIMIT 1
+    </select>
+
+    <resultMap id="SearchProductInfoResultMap"
+               type="com.avengers.musinsa.domain.product.dto.search.SearchResponse$ProductInfo">
+        <result property="brandId" column="brandId"/>
+        <result property="brandNameKr" column="brandNameKr"/>
+        <result property="brandNameEn" column="brandNameEn"/>
+        <result property="productId" column="productId"/>
+        <result property="productImage" column="productImage"/>
+        <result property="productName" column="productName"/>
+        <result property="price" column="price"/>
+        <result property="productLikes" column="productLikes"/>
+        <result property="ratingAverage" column="ratingAverage"/>
+        <result property="reviewCount" column="reviewCount"/>
+        <result property="isLiked" column="isLiked" javaType="java.lang.Boolean"/>
+    </resultMap>
+
+    <select id="findProductsByBrandId" resultMap="SearchProductInfoResultMap">
+        SELECT b.brand_id as brandId,
+        b.brand_name_kr as brandNameKr,
+        b.brand_name_eng as brandNameEn,
+        p.product_id as productId,
+        pi.image_url as productImage,
+        p.product_name as productName,
+        p.price,
+        p.product_likes as productLikes,
+        prs.rating_avg as ratingAverage,
+        prs.review_count as reviewCount,
+        CASE WHEN upl.LIKED = 1 THEN 1 ELSE 0 END AS isLiked
+        FROM products p
+        JOIN brands b ON p.brand_id = b.brand_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.image_type = 'MAIN'
+        LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
+        LEFT JOIN USER_PRODUCT_LIKES upl
+        ON upl.PRODUCT_ID = p.PRODUCT_ID
+        AND upl.user_id = #{userId}
+        WHERE p.brand_id = #{brandId}
+        <choose>
+            <when test="sortBy == 'PRICE_LOW'">
+                ORDER BY p.price ASC
+            </when>
+            <when test="sortBy == 'PRICE_HIGH'">
+                ORDER BY p.price DESC
+            </when>
+            <when test="sortBy == 'LIKE'">
+                ORDER BY p.product_likes DESC
+            </when>
+        </choose>
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="findProductsByKeyword" resultMap="SearchProductInfoResultMap">
+        SELECT b.brand_id as brandId,
+        b.brand_name_kr as brandNameKr,
+        b.brand_name_eng as brandNameEn,
+        p.product_id as productId,
+        pi.image_url as productImage,
+        p.product_name as productName,
+        p.price,
+        p.product_likes as productLikes,
+        prs.rating_avg as ratingAverage,
+        prs.review_count as reviewCount,
+        CASE WHEN upl.LIKED = 1 THEN 1 ELSE 0 END AS isLiked
+        FROM products p
+        JOIN brands b ON p.brand_id = b.brand_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.image_type = 'MAIN'
+        LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
+        LEFT JOIN USER_PRODUCT_LIKES upl
+        ON upl.PRODUCT_ID = p.PRODUCT_ID
+        AND upl.user_id = #{userId}
+        WHERE (
+        <foreach collection="keywords" item="keyword" separator=" OR ">
+            p.product_name LIKE '%' || #{keyword, jdbcType=VARCHAR} || '%'
+        </foreach>
+        )
+        <choose>
+            <when test="sortBy == 'PRICE_LOW'">
+                ORDER BY p.price ASC
+            </when>
+            <when test="sortBy == 'PRICE_HIGH'">
+                ORDER BY p.price DESC
+            </when>
+            <when test="sortBy == 'LIKE'">
+                ORDER BY p.product_likes DESC
+            </when>
+        </choose>
+        OFFSET #{offset} ROWS FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <!-- 커서 기반 브랜드 검색 -->
+    <select id="findProductsByBrandIdCursor" resultMap="SearchProductInfoResultMap">
+        SELECT b.brand_id as brandId,
+        b.brand_name_kr as brandNameKr,
+        b.brand_name_eng as brandNameEn,
+        p.product_id as productId,
+        pi.image_url as productImage,
+        p.product_name as productName,
+        p.price,
+        p.product_likes as productLikes,
+        prs.rating_avg as ratingAverage,
+        prs.review_count as reviewCount,
+        CASE WHEN upl.LIKED = 1 THEN 1 ELSE 0 END AS isLiked
+        FROM products p
+        JOIN brands b ON p.brand_id = b.brand_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.image_type = 'MAIN'
+        LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
+        LEFT JOIN USER_PRODUCT_LIKES upl
+        ON upl.PRODUCT_ID = p.PRODUCT_ID
+        AND upl.user_id = #{userId}
+        WHERE p.brand_id = #{brandId}
+        <if test="lastId != null">
+            AND (
+            <choose>
+                <when test="sortBy == 'PRICE_LOW'">
+                    p.price > #{lastValue}
+                    OR (p.price = #{lastValue} AND p.product_id > #{lastId})
+                </when>
+                <when test="sortBy == 'PRICE_HIGH'">
+                    p.price &lt; #{lastValue}
+                    OR (p.price = #{lastValue} AND p.product_id &lt; #{lastId})
+                </when>
+                <when test="sortBy == 'LIKE'">
+                    p.product_likes &lt; #{lastValue}
+                    OR (p.product_likes = #{lastValue} AND p.product_id &lt; #{lastId})
+                </when>
+            </choose>
+            )
+        </if>
+        <choose>
+            <when test="sortBy == 'PRICE_LOW'">
+                ORDER BY p.price ASC, p.product_id ASC
+            </when>
+            <when test="sortBy == 'PRICE_HIGH'">
+                ORDER BY p.price DESC, p.product_id DESC
+            </when>
+            <when test="sortBy == 'LIKE'">
+                ORDER BY p.product_likes DESC, p.product_id DESC
+            </when>
+        </choose>
+        FETCH FIRST #{size} ROWS ONLY
+    </select>
+
+    <!-- 커서 기반 키워드 검색 -->
+    <select id="findProductsByKeywordCursor" resultMap="SearchProductInfoResultMap">
+        SELECT b.brand_id as brandId,
+        b.brand_name_kr as brandNameKr,
+        b.brand_name_eng as brandNameEn,
+        p.product_id as productId,
+        pi.image_url as productImage,
+        p.product_name as productName,
+        p.price,
+        p.product_likes as productLikes,
+        prs.rating_avg as ratingAverage,
+        prs.review_count as reviewCount,
+        CASE WHEN upl.LIKED = 1 THEN 1 ELSE 0 END AS isLiked
+        FROM products p
+        JOIN brands b ON p.brand_id = b.brand_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.image_type = 'MAIN'
+        LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
+        LEFT JOIN USER_PRODUCT_LIKES upl
+        ON upl.PRODUCT_ID = p.PRODUCT_ID
+        AND upl.user_id = #{userId}
+        WHERE (
+        <foreach collection="keywords" item="keyword" separator=" OR ">
+            p.product_name LIKE '%' || #{keyword, jdbcType=VARCHAR} || '%'
+        </foreach>
+        )
+        <if test="lastId != null">
+            AND (
+            <choose>
+                <when test="sortBy == 'PRICE_LOW'">
+                    p.price > #{lastValue}
+                    OR (p.price = #{lastValue} AND p.product_id > #{lastId})
+                </when>
+                <when test="sortBy == 'PRICE_HIGH'">
+                    p.price &lt; #{lastValue}
+                    OR (p.price = #{lastValue} AND p.product_id &lt; #{lastId})
+                </when>
+                <when test="sortBy == 'LIKE'">
+                    p.product_likes &lt; #{lastValue}
+                    OR (p.product_likes = #{lastValue} AND p.product_id &lt; #{lastId})
+                </when>
+            </choose>
+            )
+        </if>
+        <choose>
+            <when test="sortBy == 'PRICE_LOW'">
+                ORDER BY p.price ASC, p.product_id ASC
+            </when>
+            <when test="sortBy == 'PRICE_HIGH'">
+                ORDER BY p.price DESC, p.product_id DESC
+            </when>
+            <when test="sortBy == 'LIKE'">
+                ORDER BY p.product_likes DESC, p.product_id DESC
+            </when>
+        </choose>
+        FETCH FIRST #{size} ROWS ONLY
+    </select>
+
+    <!--상품 좋아요 토글-->
+    <!--첫 좋아요 여부를 null 체크(레코드 확인)-->
+    <select id="getUserProductStatus"
+            resultType="com.avengers.musinsa.domain.product.dto.response.UserProductStatus">
+        SELECT upl.liked AS liked
+        FROM PRODUCTS p
+                 LEFT JOIN USER_PRODUCT_LIKES upl
+                           ON p.PRODUCT_ID = upl.PRODUCT_ID AND upl.USER_ID = #{userId}
+        WHERE p.PRODUCT_ID = #{productId}
+    </select>
+
+    <!--상품 최초 좋아요 하기(레코드 추가)-->
+    <insert id="insertUserProductLike">
+        INSERT INTO user_product_likes (user_product_like_id, user_id, product_id, liked)
+        VALUES (seq_user_product_likes.NEXTVAL, #{userId}, #{productId}, 1)
+    </insert>
+
+    <!--상품 테이블의 좋아요 수+1-->
+    <update id="plusProductLikeCnt">
+        UPDATE PRODUCTS
+        SET PRODUCT_LIKES = PRODUCT_LIKES + 1
+        WHERE PRODUCT_ID = #{productId}
+    </update>
+
+    <!--상품 테이블의 좋아요 수-1-->
+    <update id="minusProductLikeCnt">
+        UPDATE PRODUCTS
+        SET PRODUCT_LIKES = PRODUCT_LIKES - 1
+        WHERE PRODUCT_ID = #{productId}
+    </update>
+
+    <!--레코드 추가 후 회원과 상품의 현재 좋아요 상태를 반환-->
+    <select id="getIsLikedProduct"
+            resultType="com.avengers.musinsa.domain.product.dto.response.ProductLikeResponse">
+        SELECT upl.PRODUCT_ID  as productId,
+               upl.USER_ID     as userId,
+               upl.liked       as liked,
+               p.PRODUCT_LIKES as likeCount
+        FROM USER_PRODUCT_LIKES upl
+                 JOIN PRODUCTS p ON upl.PRODUCT_ID = p.PRODUCT_ID
+        WHERE upl.PRODUCT_ID = #{productId}
+          and upl.USER_ID = #{userId}
+    </select>
+
+    <!--회원상품좋아요 테이블 liked 0 ↔ 1-->
+    <update id="switchProductLike">
+        UPDATE USER_PRODUCT_LIKES
+        SET liked = CASE liked
+                        WHEN 0 THEN 1
+                        WHEN 1 THEN 0
+            END
+        WHERE user_id = #{userId}
+          AND PRODUCT_ID = #{productId}
+    </update>
+
+    <!--    상품Id로 상품 옵션 찾기-->
+    <select id="findVariantDetailsByProductId"
+            resultType="com.avengers.musinsa.domain.product.dto.response.ProductVariantDetailDto">
+        SELECT pv.PRODUCT_VARIANT_ID AS productVariantId,
+               pv.COLOR_VALUE        AS productColor,
+               pv.SIZE_VALUE         AS productsSize,
+               pv.VARIANT_NAME       AS variantName
+        FROM PRODUCT_VARIANTS pv
+        WHERE pv.PRODUCT_ID = #{productId}
+    </select>
+</mapper>

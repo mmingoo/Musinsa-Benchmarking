@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.avengers.musinsa.mapper.OrderMapper">
+
+    <select id="getUserInfo" resultType="com.avengers.musinsa.domain.order.dto.response.UserInfoDTO"
+            parameterType="Long">
+        SELECT u.user_id                                   as userId,
+               u.username                                  as userName,
+               ua.phone_number                             as phoneNumber,
+               ua.address_line1 || ' ' || ua.address_line2 AS location
+        FROM USERS u
+                 join user_addresses ua ON u.user_id = ua.user_id
+        WHERE u.user_id = #{userId}
+          AND ua.is_default = 1
+    </select>
+
+    <insert id="createShipment" parameterType="com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest">
+        <selectKey keyProperty="shipping.shippingId" resultType="long" order="BEFORE">
+            SELECT seq_shipments.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO SHIPMENTS (
+        SHIPPING_ID,
+        SHIPPING_STATUS_ID,
+        RECIPIENT_NAME,
+        RECIPIENT_PHONE,
+        RECIPIENT_ADDRESS,
+        SHIPPING_DIRECT_REQUEST,
+        POSTAL_CODE)
+        VALUES (
+        #{shipping.shippingId},
+        #{shipping.shippingStatusId, jdbcType=NUMERIC},
+        #{shipping.recipientName, jdbcType=VARCHAR},
+        #{shipping.recipientPhone, jdbcType=VARCHAR},
+        #{shipping.recipientAddress, jdbcType=VARCHAR},
+        #{shipping.shippingDirectRequest, jdbcType=VARCHAR},
+        #{shipping.postalCode, jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="createOrder">
+        <selectKey keyProperty="payment.orderId" resultType="long" order="BEFORE">
+            SELECT SEQ_ORDERS.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO ORDERS (
+        ORDER_ID,
+        USER_ID,
+        SHIPPING_ID,
+        PAYMENT_METHOD_ID,
+        TOTAL_PRICE,
+        ORDER_DISCOUNT_AMOUNT,
+        FINAL_PRICE,
+        ORDER_STATUS,
+        RECIPIENT_PHONE,
+        RECIPIENT_NAME,
+        RECIPIENT_ADDRESS,
+        POSTAL_CODE
+        )
+        SELECT
+        #{payment.orderId} AS ORDER_ID,
+        #{userId} AS USER_ID,
+        #{shippingId} AS SHIPPING_ID,
+        #{payment.paymentMethodId} AS PAYMENT_METHOD_ID,
+        #{payment.totalAmount} AS TOTAL_PRICE,
+        #{payment.discountAmount} AS ORDER_DISCOUNT_AMOUNT,
+        (#{payment.totalAmount} - #{payment.discountAmount}) AS FINAL_PRICE,
+        'PAID' AS ORDER_STATUS,
+        s.RECIPIENT_PHONE AS RECIPIENT_PHONE,
+        s.RECIPIENT_NAME AS RECIPIENT_NAME,
+        s.RECIPIENT_ADDRESS AS RECIPIENT_ADDRESS,
+        s.POSTAL_CODE AS POSTAL_CODE
+        FROM SHIPMENTS s
+        WHERE s.SHIPPING_ID = #{shippingId}
+    </insert>
+
+    <insert id="createOrderItems">
+        INSERT INTO ORDER_ITEMS
+        (ORDER_ITEM_ID, PRODUCT_ID, COUPON_ID, ORDER_ID, QUANTITY, UNIT_PRICE, TOTAL_PRICE, DISCOUNT_RATE,
+         DISCOUNTAMOUNT, COLOR, ORDIER_ITEM_SIZE)
+        VALUES (SEQ_ORDER_ITEMS.NEXTVAL,
+                #{product.productId, jdbcType=NUMERIC},
+                #{couponId, jdbcType=NUMERIC},
+                #{orderId, jdbcType=NUMERIC},
+                #{product.quantity, jdbcType=NUMERIC},
+                #{product.finalPrice, jdbcType=NUMERIC},
+                #{product.totalPrice, jdbcType=NUMERIC},
+                #{product.discountRate, jdbcType=NUMERIC},
+                #{product.productDiscountAmount, jdbcType=NUMERIC},
+                #{product.color},
+                #{product.orderItemSize})
+
+    </insert>
+
+    <select id="getOrder" resultType="com.avengers.musinsa.domain.order.entity.Order" parameterType="Long">
+        select o.order_id              as orderId,
+               o.user_id               as userId,
+               o.user_address_id       as userAddressId,
+               o.shipping_id           as shipmentId,
+               o.payment_method_id     as paymentMethodId,
+               o.order_code            as orderCode,
+               o.total_price           as totalPrice,
+               o.order_discount_amount as orderDiscountAmount,
+               o.final_price           as finalPrice,
+               o.order_status          as orderStatus,
+               o.created_at            as orderDateTime,
+               o.recipient_phone       as recipientPhone,
+               o.recipient_name        as recipientName,
+               o.recipient_address     as recipientAddress,
+               o.postal_code           as postalCode
+
+        from orders o
+        where o.order_id = #{orderId}
+    </select>
+
+    <select id="findOrderItems" resultType="com.avengers.musinsa.domain.order.dto.response.OrderDto$OrderItemInfo"
+            parameterType="Long">
+        SELECT b.brand_id       as brandId,
+               b.brand_name_kr  as brandNameKr,
+               b.brand_name_eng as brandNameEng,
+               b.brand_image    as brandImage,
+               p.product_id     as productId,
+               p.product_name   as productName,
+               p.price          as price,
+               pi.image_url     as imageUrl,
+               oi.quantity      as quantity,
+               oi.unit_price    as unitPrice,
+               oi.discount_rate as discountRate,
+               oi.total_price   as totalPrice
+        FROM order_items oi
+                 JOIN products p ON oi.product_id = p.product_id
+                 JOIN brands b ON p.brand_id = b.brand_id
+                 LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.image_type = 'MAIN'
+        WHERE oi.order_id = #{orderId}
+    </select>
+
+    <select id="getShippingAddressesUserId"
+            resultType="com.avengers.musinsa.domain.shipments.dto.ShippingAddressOrderDTO" parameterType="Long">
+        SELECT ua.user_address_id                          AS shippingId,
+               ua.user_id                                  AS userId,
+               ua.recipient_name                           AS recipientName,
+               ua.phone_number                             AS recipientPhone,
+               ua.address_line1 || ' ' || ua.address_line2 AS recipientAddress,
+               ua.postal                                   AS postalCode,
+               ua.is_default                               AS isDefault
+        FROM user_addresses ua
+
+        WHERE ua.user_id = #{userId}
+        ORDER BY ua.is_default DESC, ua.user_address_id ASC
+    </select>
+
+</mapper>

@@ -1,0 +1,65 @@
+# Spring Boot 애플리케이션 기본 설정
+spring:
+  # 애플리케이션 이름 설정
+  application:
+    name: ${SPRING_APPLICATION_NAME}
+
+
+  jwt:
+    secret: ${JWT_SECRET}
+  # JSP 뷰 설정
+  mvc:
+    view:
+      prefix: /WEB-INF/views/  # JSP 파일이 위치한 디렉토리 경로
+      suffix: .jsp             # JSP 파일 확장자
+
+  # 데이터베이스 연결 설정 (Oracle DB)
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+  # H2 콘솔 설정
+  h2:
+    console:
+      enabled: ${SPRING_H2_CONSOLE_ENABLED:true}  # 기본값 true
+
+  # JPA/Hibernate 설정
+  jpa:
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM}
+    hibernate:
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
+
+  # OAuth2 설정
+  security:
+    oauth2:
+      client:
+        registration:
+          naver:
+            client-name: ${OAUTH2_NAVER_CLIENT_NAME}
+            client-id: ${OAUTH2_NAVER_CLIENT_ID}
+            client-secret: ${OAUTH2_NAVER_CLIENT_SECRET}
+            redirect-uri: ${OAUTH2_NAVER_REDIRECT_URI}
+            authorization-grant-type: ${OAUTH2_NAVER_GRANT_TYPE}
+            scope:
+              - name
+              - email
+        provider:
+          naver:
+            authorization-uri: ${OAUTH2_NAVER_AUTH_URI}
+            token-uri: ${OAUTH2_NAVER_TOKEN_URI}
+            user-info-uri: ${OAUTH2_NAVER_USERINFO_URI}
+            user-name-attribute: ${OAUTH2_NAVER_USER_NAME_ATTRIBUTE}
+
+# MyBatis 설정
+mybatis:
+  mapper-locations: ${MYBATIS_MAPPER_LOCATIONS}
+  type-aliases-package: ${MYBATIS_TYPE_ALIASES_PACKAGE}
+
+
+logging:
+  level:
+    com.avengers.musinsa.mapper.BrandMapper: TRACE
+    com.avengers.musinsa.mapper: TRACE

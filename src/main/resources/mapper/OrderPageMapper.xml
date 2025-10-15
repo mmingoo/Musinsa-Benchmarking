@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.avengers.musinsa.mapper.OrderPageMapper">
+
+    <!-- 주문자 기본 정보 조회 -->
+    <select id="getBuyerInfo" resultType="com.avengers.musinsa.domain.order.dto.response.OrderPageResponse$BuyerInfo">
+        SELECT
+            u.name AS name,
+            u.mobile AS phone,
+            u.email AS email
+        FROM users u
+        WHERE u.user_id = #{userId}
+    </select>
+
+    <!-- 주문자 기본 배송지 조회 -->
+    <select id="getDefaultAddress" resultType="com.avengers.musinsa.domain.order.dto.response.OrderPageResponse$BuyerInfo$DefaultAddress">
+        SELECT
+            ua.user_address_id AS addressId,
+            ua.recipient_name AS recipientName,
+            ua.phone_number AS recipientPhone,
+            ua.postal AS postCode,
+            ua.address_line1 AS address,
+            ua.address_line2 AS detailAddress
+        FROM user_addresses ua
+        WHERE ua.user_id = #{userId}
+          AND ua.is_default = 1
+            FETCH FIRST 1 ROW ONLY
+    </select>
+
+    <!-- 장바구니에서 주문할 상품 목록 조회 -->
+    <select id="getProductsFromCart" resultType="com.avengers.musinsa.domain.order.dto.response.OrderPageResponse$OrderProductInfo">
+        SELECT
+        b.brand_id AS brandId,
+        b.brand_name_kr AS brandName,
+        b.brand_image AS brandImage,
+        p.product_id AS productId,
+        p.product_name AS productName,
+        pi.image_url AS productImage,
+        p.price AS originalPrice,
+        COALESCE(b.brand_discount, 0) AS discountRate,
+        CASE
+            WHEN b.brand_discount IS NOT NULL AND b.brand_discount > 0
+            THEN ROUND(p.price * (100 - b.brand_discount) / 100)
+            ELSE p.price
+        END AS finalPrice,
+        uc.cart_option AS optionName,
+        uc.cart_quantity AS quantity,
+        CASE
+            WHEN b.brand_discount IS NOT NULL AND b.brand_discount > 0
+            THEN ROUND(p.price * (100 - b.brand_discount) / 100) * uc.cart_quantity
+            ELSE p.price * uc.cart_quantity
+        END AS totalPrice,
+        uc.user_cart_id AS cartItemId
+        FROM user_carts uc
+        JOIN products p ON uc.product_id = p.product_id
+        JOIN brands b ON p.brand_id = b.brand_id
+        LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.image_type = 'MAIN'
+        WHERE uc.user_cart_id IN
+        <foreach collection="cartItemIds" item="cartItemId" open="(" separator="," close=")">
+            #{cartItemId}
+        </foreach>
+        ORDER BY uc.created_at DESC
+    </select>
+
+    <!-- 직접 구매 상품 정보 조회 -->
+    <select id="getDirectPurchaseProduct" resultType="com.avengers.musinsa.domain.order.dto.response.OrderPageResponse$OrderProductInfo">
+        SELECT
+            b.brand_id AS brandId,
+            b.brand_name_kr AS brandName,
+            b.brand_image AS brandImage,
+            p.product_id AS productId,
+            p.product_name AS productName,
+            pi.image_url AS productImage,
+            p.price AS originalPrice,
+            COALESCE(b.brand_discount, 0) AS discountRate,
+            CASE
+                WHEN b.brand_discount IS NOT NULL AND b.brand_discount > 0
+                    THEN ROUND(p.price * (100 - b.brand_discount) / 100)
+                ELSE p.price
+                END AS finalPrice,
+            pv.variant_name AS optionName,
+            #{quantity} AS quantity,
+            CASE
+                WHEN b.brand_discount IS NOT NULL AND b.brand_discount > 0
+                    THEN ROUND(p.price * (100 - b.brand_discount) / 100) * #{quantity}
+                ELSE p.price * #{quantity}
+                END AS totalPrice,
+            NULL AS cartItemId
+        FROM products p
+                 JOIN brands b ON p.brand_id = b.brand_id
+                 LEFT JOIN product_images pi ON p.product_id = pi.product_id AND pi.image_type = 'MAIN'
+                 LEFT JOIN product_variants pv ON pv.product_variant_id = #{productVariantId}
+        WHERE p.product_id = #{productId}
+    </select>
+
+    <!-- 사용자 적립금 정보 조회 -->
+    <select id="getUserMileageInfo" resultType="com.avengers.musinsa.domain.order.dto.response.OrderPageResponse$UserMileageInfo">
+        SELECT
+            COALESCE(u.user_mileage, 0) AS totalMileage
+        FROM users u
+        WHERE u.user_id = #{userId}
+    </select>
+
+</mapper>

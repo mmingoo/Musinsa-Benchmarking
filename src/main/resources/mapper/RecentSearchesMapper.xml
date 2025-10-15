@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.avengers.musinsa.mapper.SearchMapper">
+    <select id="getRecentSearches" resultType="com.avengers.musinsa.domain.search.response.SearchKeywordResponseDTO" parameterType="Long">
+        <!--현재 조인해야 하는 테이블 : user, brand, product, recent_visit_brand?, search_keyword-->
+        <!--최근 검색어 + 브랜드/상품 조인-->
+        <!--중복 제거 코드 + 줄바꿈 제거 + 공백 제거-->
+        SELECT search_text AS searchText
+        FROM (
+            SELECT
+                search_text,
+                MAX(search_datetime) AS latest_search_time
+            FROM search_keyword_logs
+            WHERE user_id = #{user_id}
+            GROUP BY search_text
+        ) recent_keywords
+        ORDER BY latest_search_time DESC
+        FETCH FIRST 10 ROWS ONLY
+    </select>
+
+    <!--Row Number 같은 윈도우 함수로 검색어별-->
+</mapper>
