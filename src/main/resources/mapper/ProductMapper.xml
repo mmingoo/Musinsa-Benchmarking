@@ -48,7 +48,7 @@
                                AND ubl.user_id = #{userId}
                  LEFT JOIN USER_PRODUCT_LIKES upl
                            ON upl.PRODUCT_ID = p.PRODUCT_ID
-                               AND upl.user_id = #{userId}
+                               AND upl.user_id = #{userId, jdbcType=NUMERIC}
         WHERE p.product_id = #{productId}
     </select>
 
@@ -242,7 +242,7 @@
         JOIN product_images pimg ON pimg.product_id = ranked_products.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = ranked_products.product_id
-        AND upl.user_id = #{userId}
+        AND upl.user_id = #{userId, jdbcType=NUMERIC}
 
         WHERE pimg.image_type = 'MAIN'
         <choose>
@@ -307,7 +307,7 @@
         JOIN product_images pimg ON pimg.product_id = ranked_products.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = ranked_products.product_id
-        AND upl.user_id = #{userId}
+        AND upl.user_id = #{userId, jdbcType=NUMERIC}
 
         WHERE pimg.image_type = 'MAIN'
         <if test="lastId != null">
@@ -515,7 +515,7 @@
         LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = p.PRODUCT_ID
-        AND upl.user_id = #{userId}
+        AND upl.user_id = #{userId, jdbcType=NUMERIC}
         WHERE p.brand_id = #{brandId}
         <choose>
             <when test="sortBy == 'PRICE_LOW'">
@@ -549,7 +549,7 @@
         LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = p.PRODUCT_ID
-        AND upl.user_id = #{userId}
+        AND upl.user_id = #{userId, jdbcType=NUMERIC}
         WHERE (
         <foreach collection="keywords" item="keyword" separator=" OR ">
             p.product_name LIKE '%' || #{keyword, jdbcType=VARCHAR} || '%'
@@ -588,7 +588,7 @@
         LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = p.PRODUCT_ID
-        AND upl.user_id = #{userId}
+        AND upl.user_id = #{userId, jdbcType=NUMERIC}
         WHERE p.brand_id = #{brandId}
         <if test="lastId != null">
             AND (
@@ -641,7 +641,7 @@
         LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = p.PRODUCT_ID
-        AND upl.user_id = #{userId}
+        AND upl.user_id = #{userId, jdbcType=NUMERIC}
         WHERE (
         <foreach collection="keywords" item="keyword" separator=" OR ">
             p.product_name LIKE '%' || #{keyword, jdbcType=VARCHAR} || '%'

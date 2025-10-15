@@ -12,14 +12,12 @@
     <c:url value="/resources/js/common/likeToggle.js" var="jsLikeToggle"/>
 
     <link rel="stylesheet" href="<c:url value='/resources/css/header.css'/>">
-    <!-- 검색 화면과 동일 톤 유지 -->
     <link rel="stylesheet" href="<c:url value='/resources/css/categoryProductsPage.css'/>">
 
     <%-- Font Awesome for icons --%>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
 
     <style>
-        /* 좋아요 하트 아이콘 스타일 */
         .product-like-icon {
             position: absolute;
             bottom: 8px;
@@ -41,8 +39,6 @@
         .product-like-icon.filled {
             color: #ff4444;
         }
-
-        /* 인라인 스타일 오버라이드 제거 - CSS 파일에서 관리 */
     </style>
 </head>
 <body>
@@ -51,12 +47,10 @@
 <main class="container">
     <section class="section">
         <div class="filter-bar">
-            <!-- 검색 화면의 headline 스타일 재사용 -->
             <div class="headline">
                 "<strong id="categoryTitle"></strong>" 결과
             </div>
 
-            <!-- 정렬 옵션 -->
             <div class="sort-options">
                 <button class="sort-btn" data-sort="LIKE">좋아요순</button>
                 <button class="sort-btn" data-sort="PRICE_LOW">낮은 가격순</button>
@@ -85,13 +79,11 @@
                                         <img src="<c:url value='/resources/img/placeholder.png'/>" alt="no image">
                                     </c:otherwise>
                                 </c:choose>
-                                <%-- 좋아요 하트 아이콘 --%>
                                 <i class="fa-heart product-like-icon ${p.isLiked ? 'fas filled' : 'far empty'}"
                                    data-product-id="${p.productId}"
                                    onclick="event.preventDefault(); event.stopPropagation(); toggleProductLike(this);"></i>
                             </div>
 
-                            <!-- 검색 화면 구조와 동일: 브랜드/이름/가격/좋아요 -->
                             <div class="product-brand">
                                 <c:out value="${p.brandName}"/>
                             </div>
@@ -153,18 +145,14 @@
             // 클릭 이벤트 추가
             btn.addEventListener('click', function () {
                 const sortType = this.dataset.sort;
-
-                // URL 파라미터 업데이트
                 const newParams = new URLSearchParams(window.location.search);
                 newParams.set('sortBy', sortType);
-
-                // 페이지 리로드
                 window.location.search = newParams.toString();
             });
         });
     });
 
-    // 카테고리 페이지 상품 좋아요 토글 함수
+    // 상품 좋아요 토글 함수
     function toggleProductLike(iconElement) {
         const $icon = $(iconElement);
         const productId = $icon.attr('data-product-id');
@@ -183,7 +171,6 @@
             success: function (response) {
                 console.log('좋아요 토글 성공:', response);
 
-                // response.liked가 true이면 좋아요 상태, false이면 좋아요 해제 상태
                 if (response.liked === true || response.liked === 1) {
                     $icon.removeClass('far empty').addClass('fas filled');
                 } else {
@@ -197,13 +184,13 @@
         });
     }
 
-    // 커서 기반 무한 스크롤 기능
+    // ========== 무한 스크롤 기능 ==========
     let lastId = null;
     let lastValue = null;
     let isLoading = false;
     let hasMoreData = true;
 
-    // 페이지 로드 시 이미 렌더링된 마지막 상품의 커서 정보 추출
+    // 페이지 로드 시 초기 커서 정보 추출
     $(document).ready(function() {
         const productCards = $('.product-card');
         if (productCards.length > 0) {
@@ -222,12 +209,28 @@
 
             console.log('초기 커서 설정:', {lastId, lastValue, sortBy});
         }
+
+        // 🔥 초기 높이 체크 및 자동 로드
+        setTimeout(() => {
+            const docHeight = $(document).height();
+            const winHeight = $(window).height();
+            console.log('초기 높이 체크 - 문서:', docHeight, '윈도우:', winHeight);
+
+            if (docHeight <= winHeight + 100) {
+                console.log('초기 높이 부족 - 자동 로드 시작');
+                loadMoreProducts();
+            }
+        }, 500);
     });
 
     function loadMoreProducts() {
-        if (isLoading || !hasMoreData) return;
+        if (isLoading || !hasMoreData) {
+            console.log('로드 중단 - isLoading:', isLoading, 'hasMoreData:', hasMoreData);
+            return;
+        }
 
         isLoading = true;
+        console.log('상품 로드 시작...');
 
         const urlParams = new URLSearchParams(window.location.search);
         const categoryId = window.location.pathname.split('/').pop();
@@ -244,13 +247,18 @@
             requestData.lastValue = lastValue;
         }
 
+        console.log('API 요청:', '/api/v1/products/category/' + categoryId, requestData);
+
         $.ajax({
             url: '/api/v1/products/category/' + categoryId,
             method: 'GET',
             data: requestData,
             success: function (products) {
+                console.log('응답 받음 - 상품 수:', products.length);
+
                 if (products.length === 0) {
                     hasMoreData = false;
+                    console.log('더 이상 데이터 없음');
                     return;
                 }
 
@@ -265,12 +273,17 @@
                     lastValue = lastProduct.productLikes;
                 }
 
+                console.log('커서 업데이트:', {lastId, lastValue});
+
                 const $grid = $('.search-grid');
                 products.forEach(function (p) {
                     let likesHtml = p.productLikes ? '<span class="likes">♥ ' + p.productLikes.toLocaleString() + '</span>' : '';
                     let starsHtml = p.ratingAverage ? '<span class="stars">★' + p.ratingAverage.toFixed(1) + '(' + p.reviewCount + ')</span>' : '';
 
-                    const productHtml = '<a class="product-card" href="/products/' + p.productId + '">' +
+                    const productHtml = '<a class="product-card" href="/products/' + p.productId + '" ' +
+                        'data-product-id="' + p.productId + '" ' +
+                        'data-price="' + p.price + '" ' +
+                        'data-likes="' + p.productLikes + '">' +
                         '<div class="product-image">' +
                         '<img src="' + (p.productImage || '/resources/img/placeholder.png') + '" alt="' + p.productName + '">' +
                         '<i class="fa-heart product-like-icon ' + (p.isLiked ? 'fas filled' : 'far empty') + '" ' +
@@ -288,6 +301,7 @@
                 });
 
                 isLoading = false;
+                console.log('상품 추가 완료');
             },
             error: function (xhr) {
                 console.error('상품 로드 실패:', xhr);
@@ -296,9 +310,26 @@
         });
     }
 
-    // 스크롤 이벤트 리스너
+    // 🔥 개선된 스크롤 이벤트 리스너
     $(window).on('scroll', function () {
-        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+        const scrollTop = $(window).scrollTop();
+        const windowHeight = $(window).height();
+        const docHeight = $(document).height();
+        const scrollBottom = scrollTop + windowHeight;
+
+        // 디버깅 (스크롤 시작 시 한 번만)
+        if (scrollTop > 0 && scrollTop < 10) {
+            console.log('스크롤 위치:', {
+                scrollTop: scrollTop,
+                windowHeight: windowHeight,
+                docHeight: docHeight,
+                trigger: docHeight * 0.8
+            });
+        }
+
+        // 🔥 80% 지점에서 트리거 (더 일찍 로드)
+        if (scrollBottom >= docHeight * 0.8) {
+            console.log('스크롤 트리거 발동!');
             loadMoreProducts();
         }
     });
