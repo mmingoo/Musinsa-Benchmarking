@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.avengers.musinsa.mapper.BrandMapper">
+    <select id="selectRecentVisitedBrands" parameterType="long" resultType="com.avengers.musinsa.domain.brand.dto.BrandDto">
+        SELECT
+            brandId,
+            brandName,
+            brandEngName,
+            brandImageUrl
+        FROM (
+                 SELECT DISTINCT
+                     b.BRAND_ID AS brandId,
+                     b.BRAND_NAME_KR AS brandName,
+                     b.BRAND_NAME_ENG AS brandEngName,
+                     b.BRAND_IMAGE AS brandImageUrl,
+                     MAX(rvb.BRAND_VIEW_TIME) AS maxViewTime
+                 FROM recent_visited_brands rvb
+                          JOIN brands b ON rvb.BRAND_ID = b.BRAND_ID
+                 WHERE rvb.USER_ID = #{userId}
+                     MAX(sbl.SEARCH_DATETIME) AS maxViewTime
+                 FROM SEARCH_BRAND_LOGS sbl
+                          JOIN brands b ON sbl.SEARCH_BRAND_ID = b.BRAND_ID
+                 WHERE sbl.USER_ID = #{userId}
+                 GROUP BY b.BRAND_ID, b.BRAND_NAME_KR, b.BRAND_NAME_ENG, b.BRAND_IMAGE
+                 ORDER BY maxViewTime DESC
+             )
+    </select>
+
+
+    <!--첫 좋아요 여부를 null 체크(레코드 확인)-->
+    <select id="getUserBrandStatus"
+            resultType="com.avengers.musinsa.domain.brand.dto.response.UserBrandStatus">
+        SELECT ubl.liked AS liked
+        FROM BRANDS b
+        LEFT JOIN USER_BRAND_LIKES ubl
+        ON b.BRAND_ID = ubl.BRAND_ID AND ubl.USER_ID = #{userId}
+        WHERE b.BRAND_ID = #{brandId}
+    </select>
+
+    <!--브랜드 최초 좋아요 하기(레코드 추가)-->
+    <insert id="insertUserBrandLike">
+        INSERT INTO user_brand_likes (user_brand_like_id, user_id, brand_id, liked) VALUES (SEQ_USER_BRAND_LIKES.NEXTVAL,#{userId}, #{brandId}, 1)
+    </insert>
+
+    <!--브랜드 테이블의 좋아요 수+1-->
+    <update id="plusBrandLikeCnt">
+        UPDATE BRANDS
+        SET BRAND_LIKES = BRAND_LIKES + 1
+        WHERE BRAND_ID = #{brandId}
+    </update>
+
+    <!--브랜드 테이블의 좋아요 수-1-->
+    <update id="minusBrandLikeCnt">
+        UPDATE BRANDS
+        SET BRAND_LIKES = BRAND_LIKES - 1
+        WHERE BRAND_ID = #{brandId}
+    </update>
+
+
+    <!--레코드 추가 후 회원과 브랜드의 현재 좋아요 상태를 반환-->
+    <select id="getIsLikedBrand"
+            resultType="com.avengers.musinsa.domain.brand.dto.response.BrandLikeResponse">
+        SELECT ubl.brand_id as brandId,
+               ubl.user_id as userId,
+               ubl.liked as liked,
+               b.BRAND_LIKES as likeCount
+        FROM USER_BRAND_LIKES ubl
+        JOIN BRANDS b ON ubl.BRAND_ID = b.BRAND_ID
+        WHERE ubl.BRAND_ID = #{brandId} and ubl.USER_ID = #{userId}
+    </select>
+
+    <!--회원브랜드좋아요 테이블 liked 0 ↔ 1-->
+    <update id="switchBrandLike">
+        UPDATE USER_BRAND_LIKES
+        SET liked = CASE liked
+                        WHEN 0 THEN 1
+                        WHEN 1 THEN 0
+            END
+        WHERE user_id = #{userId} AND brand_id = #{brandId}
+    </update>
+
+    <select id="findByBrandName" resultType="com.avengers.musinsa.domain.brand.dto.response.BrandResponse" parameterType="String">
+        select b.brand_id as brandId,
+               b.brand_name_kr as brandNameKr,
+               b.brand_name_eng as brandNameEn,
+               b.brand_image as brandImage,
+               b.brand_likes as brandLikes
+
+        from brands b
+        where brand_name_eng = #{brandName} or brand_name_kr = #{brandName}
+    </select>
+</mapper>
+
+
+
+
+

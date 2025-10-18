@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.avengers.musinsa.mapper.CartMapper">
+
+    <select id="getProductsInCart"
+            resultType="com.avengers.musinsa.domain.user.dto.ProductsInCartInfoResponse">
+        SELECT uc.USER_CART_ID            AS userCartId,
+               p.PRODUCT_ID               AS productId,
+               p.PRODUCT_NAME             AS productName,
+               p.PRICE * uc.CART_QUANTITY AS totalPrice,
+               uc.CART_OPTION             AS optionName,
+               uc.CART_QUANTITY           AS quantity,
+               b.BRAND_NAME_KR            AS productBrand,
+               img.IMAGE_URL              AS imageUrl
+        FROM USER_CARTS uc
+                 JOIN PRODUCTS p
+                      ON p.PRODUCT_ID = uc.PRODUCT_ID
+                 LEFT JOIN PRODUCT_IMAGES img
+                           ON p.PRODUCT_ID = img.PRODUCT_ID
+                               AND img.IMAGE_TYPE = 'MAIN'
+                 LEFT JOIN BRANDS b
+                           ON p.BRAND_ID = b.BRAND_ID
+        WHERE uc.USER_ID = #{userId}
+        ORDER BY uc.CREATED_AT DESC
+    </select>
+
+    <!--    해당 상품의 옵션 명과 재고 가져오기    -->
+    <select id="productOptionInfo" resultType="com.avengers.musinsa.domain.user.dto.ProductOptionInfo">
+        SELECT pv.VARIANT_NAME AS optionName,
+        pv.STOCK_QUANTITY AS quantity
+        FROM PRODUCT_VARIANTS pv
+        WHERE pv.PRODUCT_ID = #{productId}
+        <if test="productOptions != null and !productOptions.isEmpty()">
+            <foreach collection="productOptions" item="optionValue" index="optionTypeId">
+                <choose>
+                    <when test="optionTypeId == 1">
+                        AND pv.COLOR_VALUE = #{optionValue}
+                    </when>
+                    <when test="optionTypeId == 2">
+                        AND pv.SIZE_VALUE = #{optionValue}
+                    </when>
+                    <when test="optionTypeId == 3">
+                        AND pv.MATERIAL_VALUE = #{optionValue}
+                    </when>
+                </choose>
+            </foreach>
+        </if>
+        FETCH FIRST 1 ROW ONLY
+    </select>
+
+    <!--    장바구니의 해당 상품 업데이트    -->
+    <update id="updateProductOption">
+        UPDATE USER_CARTS
+        SET CART_OPTION=#{productOptionName},
+            CART_QUANTITY=#{quantity}
+        WHERE USER_CART_ID = #{userCartId}
+    </update>
+
+    <!--    userId와 productVariantId를 이용해 장바구니 찾기-->
+    <select id="findCartItemByVariantId"
+            resultType="com.avengers.musinsa.domain.user.dto.CartItemDto">
+        SELECT uc.USER_CART_ID  AS cartId,
+               uc.CART_QUANTITY AS quantity
+        FROM USER_CARTS uc
+        WHERE uc.USER_ID = #{userId}
+          AND uc.CART_OPTION = #{request.variantName}
+          AND uc.PRODUCT_ID = #{request.productId}
+    </select>
+
+    <!--처음 장바구니 insert-->
+    <insert id="insertNewCartItem">
+        INSERT INTO USER_CARTS
+            (user_cart_id, user_id, product_id, CART_QUANTITY, CART_OPTION)
+        SELECT SEQ_USER_CARTS.nextval,
+               #{userId},
+               #{request.productId},
+               #{request.quantity},
+               #{request.variantName}
+        FROM DUAL
+    </insert>
+
+    <!--    장바구니수량업데이트-->
+    <update id="updateCartItemQuantity">
+        UPDATE USER_CARTS
+        SET CART_QUANTITY = #{newQuantity}
+        WHERE USER_CART_ID = #{cartId}
+    </update>
+
+    <!--    장바구니 아이템 삭제-->
+    <delete id="deleteCartItems">
+        DELETE FROM USER_CARTS
+        WHERE USER_ID = #{userId}
+        AND USER_CART_ID IN
+        <foreach collection="cartIds" item="cartId" open="(" separator="," close=")">
+            #{cartId}
+        </foreach>
+    </delete>
+</mapper>

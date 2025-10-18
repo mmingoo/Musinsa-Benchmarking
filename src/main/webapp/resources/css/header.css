@@ -1,0 +1,246 @@
+/* General Reset */
+body, ul, li, a, i, button {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+    color: inherit;
+    box-sizing: border-box;
+}
+
+.musinsa-header {
+    background-color: #1a1a1a; /* 어두운 배경색 */
+    max-width: 1400px;
+    margin: 0 auto;
+    color: #fff;
+    font-family: 'Noto Sans KR', sans-serif;
+    width: 100%;
+
+    position: fixed; /* 스크롤 시 고정 */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000; /* 다른 요소 위로 */
+    height: 55px;
+}
+
+/* 본문이 가려지지 않게 여백 추가 */
+body {
+    padding-top: 55px; /* 헤더 높이 + 여유 */
+}
+
+.musinsa-header .inner {
+    height: 55px;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+}
+
+/* Header Left (Logo & GNB) */
+.header-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.hamburger-btn {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 15px;
+    cursor: pointer;
+    margin-right: 10px; /* 구분선과의 간격 */
+    padding: 0 3px;
+}
+
+/* 햄버거 버튼과 로고 사이 구분선 스타일 */
+.header-left .logo-separator {
+    color: #444;
+    font-size: 17px;
+    font-weight: normal;
+    margin-right: 15px; /* 로고와의 간격 */
+}
+
+.header-left .logo a {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ccc;
+    margin-right: 15px; /* GNB 시작점과의 간격 */
+}
+
+.header-left .gnb {
+    margin-left: 0;
+}
+
+.header-left .gnb ul li {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    margin-right: 15px;
+    font-weight: 600;
+}
+
+.header-left .gnb ul li a {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ccc;
+    transition: color 0.2s ease;
+}
+
+/* GNB 내 USED와 SNAP 사이 구분선 */
+.header-left .gnb ul li.separator {
+    margin: 0 5px;
+    color: #444;
+    font-weight: 700;
+}
+
+.header-left .gnb ul li a:hover {
+    color: #ccc;
+}
+
+/* Header Right (User Menu) */
+.header-right .user-menu {
+    display: flex;
+    align-items: center;
+}
+
+.header-right .user-menu li {
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.header-right .user-menu li a {
+    color: #ccc;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    transition: color 0.2s ease;
+}
+
+.header-right .user-menu li:first-child a {
+    padding-left: 0;
+}
+
+.header-right .user-menu li a:hover {
+    color: #ccc;
+}
+
+.header-right .user-menu li i {
+    margin-right: 6px;
+    font-size: 14px;
+}
+
+/* 우측 메뉴의 구분선 스타일 */
+.header-right .user-menu .separator {
+    margin: 0;
+    padding: 0 4px;
+    color: #333; /* 아주 어두운 구분선 */
+    font-size: 13px;
+    font-weight: normal;
+}
+
+/* 장바구니 뱃지 스타일 */
+.cart-item {
+    position: relative;
+}
+
+.cart-badge {
+    /*position: static;
+    background-color: #245eff;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    margin-left: 6px;
+    flex-shrink: 0;*/
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    min-width: 20px;
+    padding: 0 4px;
+    margin-left: 4px;
+    background-color: #245eff;
+    box-sizing: border-box;
+    border-radius: 22px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1;
+}
+
+/* 로그인/로그아웃 버튼 스타일 (흰색 테두리 적용) */
+.header-right .user-menu .btn-outline-dark {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px 10px;
+    margin-left: 10px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.header-right .user-menu .btn-outline-dark a {
+    padding: 0;
+    font-weight: normal;
+    color: #ccc;
+}
+
+.header-right .user-menu .btn-outline-dark:hover {
+    background-color: #333;
+    border-color: #ccc;
+}
+
+/* ===============================================
+   반응형 디자인 (Responsive Design)
+   =============================================== */
+
+/* 전체 헤더 가로 고정 */
+.musinsa-header .inner {
+    flex-wrap: nowrap !important;
+    overflow-x: hidden;
+}
+
+.header-left, .header-right {
+    flex-shrink: 1;
+}
+
+.header-left .gnb ul {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+/* 1100px 이하 - GNB 메뉴와 오프라인스토어 숨기기 ([S]:SNAP과 오프라인스토어가 붙는 시점) */
+@media screen and (max-width: 1220px) {
+    /* GNB 메뉴 완전히 숨기기 */
+    .header-left .gnb {
+        display: none !important;
+    }
+
+    /* 오프라인스토어 메뉴와 구분선 숨기기 */
+    .header-right .user-menu li:first-child,
+    .header-right .user-menu li:first-child + .separator {
+        display: none !important;
+    }
+}
+
+/* 600px 이하 - 아이콘 숨기기 (로고와 검색이 붙을 지점) */
+@media screen and (max-width: 600px) {
+    /* 아이콘 완전히 숨기기 */
+    .header-right .user-menu li i {
+        display: none !important;
+    }
+}

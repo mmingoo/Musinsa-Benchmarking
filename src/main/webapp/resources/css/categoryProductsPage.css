@@ -1,0 +1,296 @@
+/* ===== 홈 파일 톤에 맞춘 보조 스타일(검색.css와 동일 톤) ===== */
+html {
+    overflow-y: scroll; /* 스크롤바 항상 표시하여 너비 변동 방지 */
+}
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #ffffff;
+    margin: 0;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px 30px;
+}
+
+.section {
+    background: #fafafa;
+    padding: 20px;
+    border: 1px solid #e9ecef; /* 테두리 추가 */
+}
+
+/* 🚀 [추가] 대분류 카테고리 (이미지 상단의 '뷰티' 아래 메뉴들) */
+.category-main-menu {
+    border-bottom: 1px solid #e9ecef; /* 하단 구분선 */
+    padding: 10px 0;
+    margin-bottom: 15px;
+    white-space: nowrap; /* 메뉴 항목 줄 바꿈 방지 */
+    overflow-x: auto; /* 내용이 많아질 경우 가로 스크롤 허용 */
+}
+.category-main-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 25px; /* 항목 간 간격 */
+}
+.category-main-menu li a {
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    color: #495057;
+    padding: 8px 0;
+    position: relative;
+    transition: color 0.2s;
+}
+.category-main-menu li a:hover {
+    color: #212529;
+}
+.category-main-menu li a.active {
+    color: #111;
+    font-weight: 700;
+}
+/* 선택된 항목 밑줄 */
+.category-main-menu li a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -11px; /* border-bottom 위에 위치하도록 조정 */
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #111;
+}
+
+/* 🚀 [추가] 소분류 카테고리 (이미지 중간의 '전체, 립밤/메이크업' 메뉴들) */
+.category-sub-menu {
+    padding: 15px 0;
+    margin-bottom: 10px;
+}
+.category-sub-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap; /* 내용이 많으면 다음 줄로 넘어가도록 */
+    gap: 8px; /* 항목 간 간격 */
+}
+.category-sub-menu li a {
+    display: block;
+    padding: 6px 14px;
+    border: 1px solid #e9ecef;
+    border-radius: 999px; /* 둥근 알약 모양 */
+    text-decoration: none;
+    font-size: 13px;
+    color: #495057;
+    background: #fff;
+    transition: all 0.2s;
+}
+.category-sub-menu li a:hover {
+    border-color: #adb5bd;
+    color: #212529;
+}
+.category-sub-menu li a.active {
+    border-color: #111;
+    color: #111;
+    font-weight: 600;
+    background: #fff;
+}
+
+
+/* 검색 헤더(필요시 사용) */
+.search-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.search-input {
+    flex: 1;
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.search-btn {
+    height: 40px;
+    padding: 0 16px;
+    border: 0;
+    background: #111;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* 헤드라인 (검색 화면과 동일) */
+.headline {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 6px 0 4px;
+}
+
+/* 정렬 옵션 스타일 */
+.sort-options {
+    display: inline-flex;
+    gap: 5px; /* 버튼 사이 간격 추가 */
+    margin: 18px 0 18px 0;
+    padding: 0; /* 내부 패딩 제거 */
+    background: #ffffff; /* 배경색 흰색으로 변경 */
+    border-radius: 0;
+}
+
+.sort-btn {
+    /* 탭 모양을 위한 설정 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 50px; /* 최소 너비 설정 (텍스트가 짧을 경우) */
+    height: 30px; /* 높이 고정 */
+    padding: 0 16px;
+    font-size: 13px; /* 텍스트 크기 증가 */
+    font-weight: 500;
+    letter-spacing: normal;
+
+    /* 기본 상태 (Inactive) */
+    color: #868e96; /* 회색 텍스트 */
+    background: #fff;
+    border: 1px solid #e9ecef; /* 얇은 회색 테두리 */
+    border-radius: 4px; /* 둥근 사각형 */
+    cursor: pointer;
+    transition: all 0.2s; /* 부드러운 전환 효과 */
+    position: relative;
+}
+
+.sort-btn:hover:not(.active) {
+    color: #495057; /* 호버 시 약간 진하게 */
+    border-color: #ced4da;
+}
+
+.sort-btn.active {
+    /* 선택된 상태 */
+    background: #fff;
+    color: #111; /* 검은색 텍스트 */
+    font-weight: 700; /* 텍스트 굵게 */
+    border: 1px solid #111; /* 검은색 진한 테두리 */
+    box-shadow: none; /* 그림자 제거 */
+}
+
+/* 브랜드 박스는 현재 페이지에선 미사용이지만 톤 유지를 위해 포함 */
+.brand-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.brand-box img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.brand-en {
+    font-size: 12px;
+    color: #868e96;
+}
+
+.brand-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: #1c7ed6;
+    border: 1px solid #a5d8ff;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+/* ===== '붙는' 그리드 (검색 화면 동일) ===== */
+/* 한 줄에 6개 아이템 고정 */
+.search-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6개의 균일한 너비 컬럼 */
+    justify-content: center;
+    gap: 28px 0; /* row-gap 28px, column-gap 0 */
+}
+
+
+/* 카드 */
+.product-card {
+    margin: 0;
+    padding: 0;
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    width: 100%; /* 명시적 너비 */
+}
+
+/* 이미지는 타일 사이 경계선만 */
+.product-image {
+    width: 100%; /* 그리드 칸에 맞게 꽉 차도록 */
+    aspect-ratio: 200/249; /* 고정 비율 유지 */
+    background: #f0f0f0;
+    overflow: hidden;
+    position: relative;
+}
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+/* 줄 마지막 아이템은 오른쪽 경계선 제거(반응형 대응)
+   --> 6n으로 규칙 업데이트 */
+.product-card:nth-child(6n) .product-image {
+    border-right: 0;
+}
+
+/* 텍스트는 살짝 안쪽으로 */
+
+.product-brand,
+.product-name,
+.product-price {
+    padding: 0 6px;
+}
+
+.likes-and-stars {
+    padding: 0 6px;
+}
+.product-brand {
+    font-size: 11px;
+    color: #666;
+    margin: 6px 0 2px;
+}
+.product-name {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.3;
+    margin-bottom: 2px;
+}
+.product-price {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111;
+}
+.likes-and-stars {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #ff0000; /* 좋아요 */
+}
+.stars {
+    color: #FA9200;
+}
+
+/* aspect-ratio로 자동 관리되므로 미디어 쿼리 불필요 */

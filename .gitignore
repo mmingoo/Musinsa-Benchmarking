@@ -1,0 +1,32 @@
+# IDE 관련
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# 빌드 결과물
+/build/
+/target/
+*.jar
+*.war
+
+# Gradle 관련
+.gradle/
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# 로그 파일
+*.log
+logs/
+
+# 임시 파일
+*.tmp
+*~
+
+# env
+.env
