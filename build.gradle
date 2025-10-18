@@ -60,6 +60,10 @@ dependencies {
 
     // Caffeine 캐시 라이브러리
     implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    //분산락
+    implementation 'org.redisson:redisson-spring-boot-starter:3.24.3'
+
 }
 
 tasks.named('test') {

@@ -1,12 +1,13 @@
 # Spring Boot 애플리케이션 기본 설정
 spring:
+
   # 애플리케이션 이름 설정
   application:
     name: ${SPRING_APPLICATION_NAME}
 
-
   jwt:
     secret: ${JWT_SECRET}
+
   # JSP 뷰 설정
   mvc:
     view:
@@ -31,6 +32,32 @@ spring:
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
     show-sql: ${SPRING_JPA_SHOW_SQL:true}
+
+  # Redis 설정 (추가)
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 2
+          max-wait: -1ms
+
+  # Redisson 설정 (분산 락)
+  redis:
+    redisson:
+      config: |
+        singleServerConfig:
+          address: "redis://${SPRING_REDIS_HOST:localhost}:${SPRING_REDIS_PORT:6379}"
+          password: ${SPRING_REDIS_PASSWORD:null}
+          connectionMinimumIdleSize: 2
+          connectionPoolSize: 10
+          timeout: 3000
+          retryAttempts: 3
+          retryInterval: 1500
 
   # OAuth2 설정
   security:
@@ -60,8 +87,10 @@ mybatis:
   configuration:
     jdbc-type-for-null: NULL
 
-
 logging:
   level:
     com.avengers.musinsa.mapper.BrandMapper: TRACE
     com.avengers.musinsa.mapper: TRACE
+    # Redis 로깅 추가 (선택사항)
+    org.redisson: INFO
+    io.lettuce.core: INFO
