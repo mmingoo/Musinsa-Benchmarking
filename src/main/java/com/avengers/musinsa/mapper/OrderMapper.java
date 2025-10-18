@@ -37,4 +37,10 @@ public interface OrderMapper {
     void createOrderItems(@Param("orderId") Long orderId,
                           @Param("product") ProductLine product,
                           @Param("couponId") Long couponId);
+
+    void batchCreateOrderItems(@Param("orderId") Long orderId,
+                               @Param("orderProducts") List<ProductLine> orderProducts,
+                               @Param("couponId") Long couponId);
+
+
 }

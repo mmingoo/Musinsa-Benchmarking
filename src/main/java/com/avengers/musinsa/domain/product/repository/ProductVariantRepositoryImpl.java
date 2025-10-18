@@ -1,9 +1,12 @@
 package com.avengers.musinsa.domain.product.repository;
 
+import com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest;
 import com.avengers.musinsa.domain.product.dto.response.ProductVariantDto;
 import com.avengers.musinsa.mapper.ProductVariantMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,5 +23,15 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository{
     @Override
     public void decrementStock(Long productVariantId, int quantity) {
         productVariantMapper.decrementStock(productVariantId, quantity);
+    }
+
+    @Override
+    public void batchDecrementStock(List<OrderCreateRequest.ProductLine> products) {
+        productVariantMapper.batchDecrementStock(products);
+    }
+
+    @Override
+    public List<ProductVariantDto> findProductVariantsByOptionNames(List<OrderCreateRequest.ProductLine> products) {
+        return productVariantMapper.findProductVariantsByOptionNames(products);
     }
 }

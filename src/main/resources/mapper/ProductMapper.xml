@@ -48,7 +48,7 @@
                                AND ubl.user_id = #{userId}
                  LEFT JOIN USER_PRODUCT_LIKES upl
                            ON upl.PRODUCT_ID = p.PRODUCT_ID
-                               AND upl.user_id = #{userId, jdbcType=NUMERIC}
+                               AND upl.user_id = #{userId}
         WHERE p.product_id = #{productId}
     </select>
 
@@ -242,7 +242,7 @@
         JOIN product_images pimg ON pimg.product_id = ranked_products.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = ranked_products.product_id
-        AND upl.user_id = #{userId, jdbcType=NUMERIC}
+        AND upl.user_id = #{userId}
 
         WHERE pimg.image_type = 'MAIN'
         <choose>
@@ -307,7 +307,7 @@
         JOIN product_images pimg ON pimg.product_id = ranked_products.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = ranked_products.product_id
-        AND upl.user_id = #{userId, jdbcType=NUMERIC}
+        AND upl.user_id = #{userId}
 
         WHERE pimg.image_type = 'MAIN'
         <if test="lastId != null">
@@ -515,7 +515,7 @@
         LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = p.PRODUCT_ID
-        AND upl.user_id = #{userId, jdbcType=NUMERIC}
+        AND upl.user_id = #{userId}
         WHERE p.brand_id = #{brandId}
         <choose>
             <when test="sortBy == 'PRICE_LOW'">
@@ -549,7 +549,7 @@
         LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = p.PRODUCT_ID
-        AND upl.user_id = #{userId, jdbcType=NUMERIC}
+        AND upl.user_id = #{userId}
         WHERE (
         <foreach collection="keywords" item="keyword" separator=" OR ">
             p.product_name LIKE '%' || #{keyword, jdbcType=VARCHAR} || '%'
@@ -588,7 +588,7 @@
         LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = p.PRODUCT_ID
-        AND upl.user_id = #{userId, jdbcType=NUMERIC}
+        AND upl.user_id = #{userId}
         WHERE p.brand_id = #{brandId}
         <if test="lastId != null">
             AND (
@@ -641,7 +641,7 @@
         LEFT JOIN product_review_stats prs ON p.product_id = prs.product_id
         LEFT JOIN USER_PRODUCT_LIKES upl
         ON upl.PRODUCT_ID = p.PRODUCT_ID
-        AND upl.user_id = #{userId, jdbcType=NUMERIC}
+        AND upl.user_id = #{userId}
         WHERE (
         <foreach collection="keywords" item="keyword" separator=" OR ">
             p.product_name LIKE '%' || #{keyword, jdbcType=VARCHAR} || '%'
@@ -744,4 +744,64 @@
         FROM PRODUCT_VARIANTS pv
         WHERE pv.PRODUCT_ID = #{productId}
     </select>
+
+    <select id="getProductLikeCnt" resultType="Long">
+        select PRODUCTS.PRODUCT_LIKES
+        from products
+        where PRODUCT_ID = #{productId}
+
+    </select>
+
+    <update id="resetProductLikeCnt" parameterType="long">
+        UPDATE PRODUCTS SET PRODUCT_LIKES = 0 WHERE PRODUCT_ID = #{productId}
+    </update>
+
+    <delete id="deleteAllUserProductLikes" parameterType="long">
+        DELETE FROM USER_PRODUCT_LIKES WHERE PRODUCT_ID = #{productId}
+    </delete>
+
+
+
+    <select id="countUserProductLikes" resultType="int">
+        SELECT COUNT(*)
+        FROM user_product_likes
+        WHERE product_id = #{productId}
+          AND liked = 1
+    </select>
+    
+
+    <select id="countUserProductLikesByUser" resultType="int">
+        SELECT COUNT(*)
+        FROM USER_PRODUCT_LIKES
+        WHERE PRODUCT_ID = #{productId}
+          AND USER_ID = #{userId}
+          AND LIKED = 1
+    </select>
+
+
+    <update id="setProductLikeCnt">
+        UPDATE PRODUCTS
+        SET PRODUCT_LIKES = #{likeCount}
+        WHERE PRODUCT_ID = #{productId}
+    </update>
+
+    <!-- ProductMapper.xml -->
+
+    <!-- 비관적 락으로 상품 조회 -->
+    <select id="findProductByIdWithLock" resultType="com.avengers.musinsa.domain.product.entity.Product">
+        SELECT
+        product_id as productId,
+        product_likes as productLikes
+        FROM products
+        WHERE product_id = #{productId}
+        FOR UPDATE  <!-- 비관적 락! -->
+    </select>
+
+    <!-- 비관적 락 방식을 위한 좋아요 수 업데이트 -->
+    <update id="updateProductLikeCnt">
+        UPDATE products
+        SET product_likes = #{likeCnt}
+        WHERE product_id = #{productId}
+    </update>
+
 </mapper>

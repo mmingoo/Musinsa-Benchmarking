@@ -211,4 +211,37 @@ public class ProductRepositoryImpl implements ProductRepository {
     public void deleteProductReview(Long reviewId) {
         productMapper.deleteProductReview(reviewId);
     }
+
+    @Override
+    public Long getProductLikeCnt(Long productId) {
+        return productMapper.getProductLikeCnt(productId);
+    }
+
+    @Override
+    public void resetProductLikeCnt(Long productId) {
+        productMapper.resetProductLikeCnt(productId);
+    }
+
+    @Override
+    public void deleteAllUserProductLikes(Long productId) {
+        productMapper.deleteAllUserProductLikes(productId);
+    }
+
+    @Override
+    public void setProductLikeCnt(Long productId, Long newLikes) {
+        productMapper.setProductLikeCnt(productId, newLikes);
+    }
+
+    @Override
+    public Product findProductByIdWithLock(Long productId) {
+        return productMapper.findProductByIdWithLock(productId);
+    }
+
+    @Override
+    public void updateProductLikeCnt(Long productId, Long likeCnt) {
+        productMapper.updateProductLikeCnt(productId,likeCnt);
+
+    }
+
+
 }

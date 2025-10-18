@@ -71,4 +71,16 @@
         where u.user_id = #{userId}
     </select>
 
+
+    <select id="existsById" parameterType="long" resultType="boolean">
+        SELECT CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END
+        FROM USERS
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <insert id="insertTestUser">
+        INSERT INTO USERS (USER_ID, NAME, NICKNAME, SOCIAL_TYPE)
+        VALUES (#{userId}, #{name}, #{nickname}, #{socialType})
+    </insert>
+
 </mapper>

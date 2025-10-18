@@ -24,6 +24,7 @@ public class OrderCreateRequest {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Shipping {
         // ★ selectKey target
         @lombok.Setter
@@ -42,6 +43,7 @@ public class OrderCreateRequest {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Payment {
         private Integer totalAmount;
         private Integer discountAmount;
@@ -49,6 +51,8 @@ public class OrderCreateRequest {
         private Integer deliveryFee;
         private Long paymentMethodId;
         private Long orderId;
+
+
     }
 
 

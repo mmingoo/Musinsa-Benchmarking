@@ -90,6 +90,34 @@
 
     </insert>
 
+    <insert id="batchCreateOrderItems">
+        INSERT INTO ORDER_ITEMS
+        (ORDER_ITEM_ID, PRODUCT_ID, COUPON_ID, ORDER_ID, QUANTITY,
+        UNIT_PRICE, TOTAL_PRICE, DISCOUNT_RATE, DISCOUNTAMOUNT,
+        COLOR, ORDIER_ITEM_SIZE)
+        SELECT
+        SEQ_ORDER_ITEMS.NEXTVAL,
+        A.*
+        FROM (
+        <foreach collection="orderProducts" item="product" separator="UNION ALL">
+            SELECT
+            #{product.productId, jdbcType=NUMERIC} as product_id,
+            #{couponId, jdbcType=NUMERIC} as coupon_id,
+            #{orderId, jdbcType=NUMERIC} as order_id,
+            #{product.quantity, jdbcType=NUMERIC} as quantity,
+            #{product.finalPrice, jdbcType=NUMERIC} as unit_price,
+            #{product.totalPrice, jdbcType=NUMERIC} as total_price,
+            #{product.discountRate, jdbcType=NUMERIC} as discount_rate,
+            #{product.productDiscountAmount, jdbcType=NUMERIC} as discount_amount,
+            #{product.color, jdbcType=VARCHAR} as color,
+            #{product.orderItemSize, jdbcType=VARCHAR} as order_item_size
+            FROM DUAL
+        </foreach>
+        ) A
+    </insert>
+
+
+
     <select id="getOrder" resultType="com.avengers.musinsa.domain.order.entity.Order" parameterType="Long">
         select o.order_id              as orderId,
                o.user_id               as userId,
@@ -146,5 +174,6 @@
         WHERE ua.user_id = #{userId}
         ORDER BY ua.is_default DESC, ua.user_address_id ASC
     </select>
+
 
 </mapper>

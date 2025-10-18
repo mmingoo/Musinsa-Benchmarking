@@ -7,14 +7,18 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface UserMapper {
-    
+
     User findByUsername(@Param("username") String username);
-    
+
     void insertUser(User user);
-    
+
     void updateUser(User user);
-    
+
     User findByUserId(@Param("userId") Long userId);
 
     UserResponseDto.UserNameAndEmailAndMobileDto findUserNameAndEmailAndMobileById(@Param("userId") Long userId);
+
+    boolean existsById(long userId);
+
+    void insertTestUser(long userId, String name, String nickname, String socialType);
 }

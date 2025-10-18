@@ -5,6 +5,7 @@ import com.avengers.musinsa.domain.product.dto.search.SearchResponse;
 import com.avengers.musinsa.domain.product.entity.Gender;
 import com.avengers.musinsa.domain.review.dto.Request.RequestReview;
 import com.avengers.musinsa.domain.user.dto.ProductsInCartInfoResponse;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -56,4 +57,8 @@ public interface ProductService {
 
     //상품 좋아요 토글
     ProductLikeResponse ProductLikeToggle(Long userId, Long productId);
+
+    ProductLikeResponse ProductLikeToggleByLock(Long userId, Long productId);
+
+    ProductLikeResponse ProductLikeToggleByRMW(Long userId, Long productId);
 }

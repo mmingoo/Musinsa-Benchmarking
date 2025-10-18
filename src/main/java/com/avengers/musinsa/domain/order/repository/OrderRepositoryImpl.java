@@ -9,6 +9,7 @@ import com.avengers.musinsa.domain.shipments.dto.ShippingAddressOrderDTO;
 import com.avengers.musinsa.mapper.OrderMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -52,23 +53,21 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Long createOrder(Long userId, Long shippingId, OrderCreateRequest.Payment payment) {
-        System.out.println("mapper 호출 전 - userId: " + userId + ", shippingId: " + shippingId);
-        System.out.println("payment 정보: " + payment.getPaymentMethodId() + ", " + payment.getTotalAmount());
-        System.out.println(payment.getDiscountAmount());
-
         orderMapper.createOrder(userId, shippingId, payment);
 
-        System.out.println("mapper 호출 성공");
-        System.out.println("payment.getOrderId(): " + payment.getOrderId());
-        System.out.println("mapper에서 order 생성 완료");
         return payment.getOrderId();
     }
 
     @Override
     public void createOrderItems(Long orderId, OrderCreateRequest.ProductLine orderProduct, Long couponId) {
-        System.out.println("orderItem 생성 전");
         orderMapper.createOrderItems(orderId, orderProduct, couponId);
-        System.out.println("orderItem repository 생성");
     }
+
+    @Override
+    public void batchCreateOrderItems(Long orderId, List<OrderCreateRequest.ProductLine> orderProducts, Long couponId) {
+        orderMapper.batchCreateOrderItems(orderId, orderProducts, couponId);
+    }
+
+
 
 }

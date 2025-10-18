@@ -80,7 +80,7 @@ public interface ProductRepository {
     void saveSearchKeywordLog(String keyword);
 
     //검색 시 브랜드 로그 테이블에 검색 정보 저장하기.
-   // void saveSearchBrandLog(String brand);
+    // void saveSearchBrandLog(String brand);
 
 
     //상품 좋아요 토글
@@ -109,5 +109,26 @@ public interface ProductRepository {
     void updateProductReview(Long reviewId, RequestReview requestReview);
 
     void deleteProductReview(Long reviewId);
+
+    // 테스트용
+    Long getProductLikeCnt(Long productId);
+
+    //테스트용 리셋
+    void resetProductLikeCnt(Long productId);
+
+    //테스트용 좋아요 초기화
+    void deleteAllUserProductLikes(Long productId);
+
+    void setProductLikeCnt(Long productId, Long newLikes);
+
+
+    Product findProductByIdWithLock(Long productId);
+
+    /**
+     * 좋아요 수 업데이트
+     */
+    void updateProductLikeCnt(Long productId, Long likeCnt);
 }
+
+
 

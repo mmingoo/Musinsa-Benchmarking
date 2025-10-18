@@ -95,4 +95,37 @@ public interface ProductMapper {
     void updateProductReview(Long reviewId, @Param("request") RequestReview requestReview);
 
     void deleteProductReview(Long reviewId);
+
+    Long getProductLikeCnt(Long productId);
+
+    void resetProductLikeCnt(Long productId);
+
+    void deleteAllUserProductLikes(Long productId);
+
+
+    // 상품의 좋아요 수를 0으로 초기화
+
+    // 특정 상품의 모든 user_product_likes 레코드 삭제
+
+    // 특정 상품에 대한 전체 좋아요 레코드 수 조회 (liked = 1인 것만)
+    int countUserProductLikes(@Param("productId") Long productId);
+
+    // 특정 상품에 대한 특정 사용자의 좋아요 레코드 수 조회
+    int countUserProductLikesByUser(@Param("productId") Long productId, @Param("userId") Long userId);
+
+    // 테스트용 메서드 추가 (기존 메서드들 아래에)
+    void setProductLikeCnt(@Param("productId") Long productId, @Param("likeCount") Long likeCount);
+
+
+    /**
+     * 비관적 락으로 상품 조회
+     * FOR UPDATE로 행 락을 획득
+     */
+    Product findProductByIdWithLock(@Param("productId") Long productId);
+
+    /**
+     * 좋아요 수 업데이트
+     */
+    void updateProductLikeCnt(@Param("productId") Long productId,
+                              @Param("likeCnt") Long likeCnt);
 }
