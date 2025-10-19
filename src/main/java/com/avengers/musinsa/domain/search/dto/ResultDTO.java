@@ -5,11 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ResultDTO {
-    private int rank; //result 리스트 내 순위 저장
-    private String keyword; //리스트 내 키워드 저장
+public class ResultDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private int rank;
+    private String keyword;
 }

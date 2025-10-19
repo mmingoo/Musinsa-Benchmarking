@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Service
+//@Service
 @RequiredArgsConstructor
 @Slf4j
 public class PopularKeywordServiceImpl implements PopularKeywordService {
