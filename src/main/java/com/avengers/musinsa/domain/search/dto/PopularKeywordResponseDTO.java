@@ -5,12 +5,14 @@ import com.avengers.musinsa.domain.search.dto.ResultDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.List;
 
 @AllArgsConstructor
 @Getter
 @Builder
+@ToString
 public class PopularKeywordResponseDTO {
     private String basedOnTime; //현재 시간
     private String message; //성공 여부 메세지

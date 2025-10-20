@@ -20,6 +20,7 @@ spring:
     driver-class-name: ${SPRING_DATASOURCE_DRIVER}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+    dialect: org.hibernate.dialect.Oracle12cDialect
 
   # H2 콘솔 설정
   h2:

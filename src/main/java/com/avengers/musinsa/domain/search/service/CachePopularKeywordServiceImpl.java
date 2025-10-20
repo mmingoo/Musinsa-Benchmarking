@@ -17,11 +17,11 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CachePopularKeywordServiceImpl implements PopularKeywordService {
+public class CachePopularKeywordServiceImpl {
     private final PopularKeywordRepository popularKeywordRepository;
     private final PopularKeywordCacheService cacheService;
 
-    @Override
+
     public PopularKeywordResponseDTO getTrendingKeywords() {
         log.debug("인기검색어 조회 시작");
 
@@ -47,7 +47,6 @@ public class CachePopularKeywordServiceImpl implements PopularKeywordService {
     }
 
     @Transactional
-    @Override
     public Map<String, KeywordCountDTO> createPopularKeyword() {
         log.info("인기검색어 집계 시작");
 
