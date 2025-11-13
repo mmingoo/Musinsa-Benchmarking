@@ -139,13 +139,13 @@ export default function() {
         ]
     });
 
-    const response = http.post(
+    const response = http.get(
         'http://localhost:8080/orders/completion-order',
         payload,
         {
             headers: {
                 'Content-Type': 'application/json',
-                'Cookie': 'Authorization=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Im5hdmVyIGRzZjJpUnR6UkZOTHBuS05DQXEtRVk4SzJjOHhZZUYxcl9ZOC01MUVGTVUiLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzYwODQ5MjYyLCJleHAiOjE3NjA5MzU2NjJ9.baOVdm2yrgzzBUlX93jcmq0haZWyKBP2OR0_mU0AHeY; grafana_session=7d27aaebc220470ca3efb77a7b10c4f0; grafana_session_expiry=1760850066'
+                'Cookie': 'Authorization=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Im5hdmVyIGRzZjJpUnR6UkZOTHBuS05DQXEtRVk4SzJjOHhZZUYxcl9ZOC01MUVGTVUiLCJyb2xlIjoiUk9MRV9VU0VSIiwiaWF0IjoxNzYwOTQ1MjM3LCJleHAiOjE3NjEwMzE2Mzd9.u_Uc-rrVvhWCizFs4QUcrUQU5qX7HAN3dWkc9YGRh5U'
             }
         }
     );

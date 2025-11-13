@@ -1,4 +1,5 @@
-package com.avengers.musinsa.search.performance;
+package com.avengers.musinsa.search.service;
+
 
 import com.avengers.musinsa.domain.search.dto.PopularKeywordResponseDTO;
 import com.avengers.musinsa.domain.search.dto.ResultDTO;
@@ -33,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest
 @Transactional
-class CachePerformanceComparisonTest {
+class CachePopularKeywordServiceImplTest {
 
     @Autowired
     private CachePopularKeywordServiceImpl cacheService;  // 캐시 O
