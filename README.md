@@ -36,7 +36,7 @@ https://github.com/mmingoo/Musinsa-Benchmarking/blob/main/README.md#-%ED%94%84%E
 - **프로젝트 기간**: 2024.09.17 ~ 2024.10.10 (24일)
 - **프로젝트 유형**: 팀 프로젝트
 - **목적**: 대규모 이커머스 플랫폼의 핵심 기능 구현 및 성능 최적화
-- **추가자료**: [무신사벤치마킹_자료.zip](https://github.com/user-attachments/files/23557811/_.zip)
+- **추가자료**: [어벤져스_1팀_토이프로젝트1_erd.png:화면 정의서:발표자료.zip](https://github.com/user-attachments/files/22289218/_1._.1_erd.png.zip)
 
 ---
 
@@ -81,6 +81,10 @@ https://github.com/mmingoo/Musinsa-Benchmarking/blob/main/README.md#-%ED%94%84%E
 - 상품 좋아요 기능
 - 베이지안 보정으로 소수 리뷰 평점 왜곡을 방지하고, 판매량(0.3), 리뷰 수(0.2), 좋아요(0.2), 보정 평점(0.4) 가중치 기반 추천 알고리즘 구현
 ---
+
+## 🖥️ 시연영상
+https://www.youtube.com/watch?v=C11V2Bo9dPc
+
 
 ## 🚀 성능 개선
 
