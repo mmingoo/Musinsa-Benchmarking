@@ -1,16 +1,24 @@
-//package com.avengers.musinsa.config;
-//
-//import org.eclipse.tags.shaded.org.apache.bcel.generic.ARETURN;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//
-//import java.util.concurrent.Executor;
-//
-//@Configuration
-//public class AsyncConfig {
-//    @Bean(name ="virtualThreadExecutor")
-//    public Executor virtualThreadExecutor(){
-//        return Executor.newVirtualThreadPerTaskExecutor();
-//    }
-//
-//}
+package com.avengers.musinsa.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+@Configuration
+@EnableAsync
+public class AsyncConfig {
+
+    @Bean(name = "orderTaskExecutor")
+    public ThreadPoolTaskExecutor orderTaskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(25);
+        executor.setThreadNamePrefix("order-async-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
+    }
+}

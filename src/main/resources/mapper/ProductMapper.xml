@@ -109,8 +109,8 @@
     <select id="getRecommendationProductList" resultMap="RecommendationResultMap">
         WITH global_rating AS (SELECT NVL(AVG(r.rating), 0) AS C, 10 AS m
         FROM REVIEWS r)
-
         SELECT p.product_id AS productId,
+
         b.brand_id AS brandId,
         p.product_name AS productName,
         b.brand_name_kr AS productBrand,
@@ -165,6 +165,101 @@
         p.created_at DESC
         FETCH FIRST 32 ROWS ONLY
     </select>
+
+
+    <select id="updateGetRecommendationProductList" resultMap="RecommendationResultMap">
+        with
+            -- 0) 먼저 gender로 필터링된 상품만 추출
+            filtered_products as (
+                select product_id, brand_id, product_name, price
+                from products
+                where gender = #{gender}
+            ),
+
+            -- 1) 필터링된 상품에 대해서만 판매량 집계
+            sales as (
+                select oi.product_id, sum(oi.quantity) as total_sales
+                from order_items oi
+                         join orders o on o.order_id = oi.order_id
+                where o.order_status in ('paid', 'completed')
+                  and oi.product_id in (select product_id from filtered_products)
+                group by oi.product_id
+            ),
+
+            -- 2) 필터링된 상품에 대해서만 리뷰 집계
+            rev as (
+                select r.product_id,
+                       count(*) as review_count,
+                       avg(r.rating) as review_rating
+                from reviews r
+                where r.product_id in (select product_id from filtered_products)
+                group by r.product_id
+            ),
+
+            -- 3) 필터링된 상품에 대해서만 좋아요 집계
+            lik as (
+                select upl.product_id, count(*) as like_count
+                from user_product_likes upl
+                where upl.product_id in (select product_id from filtered_products)
+                group by upl.product_id
+            ),
+
+            -- 4) 베이지안 기준 (전역 평균은 그대로)
+            gr as (
+                select nvl(avg(r.rating), 0) as c, 10 as m
+                from reviews r
+            ),
+
+            -- 5) 점수 계산 후 32개만 선택
+            scored as (
+                select
+                    fp.product_id,
+                    fp.brand_id,
+                    fp.product_name,
+                    fp.price,
+                    (
+                        nvl(s.total_sales, 0) * 0.3
+                            + nvl(rv.review_count, 0) * 0.2
+                            + nvl(lk.like_count, 0) * 0.2
+                            + (
+                                  (nvl(rv.review_count, 0) / (nvl(rv.review_count, 0) + gr.m))
+                                      * nvl(rv.review_rating, gr.c)
+                                      + (gr.m / (nvl(rv.review_count, 0) + gr.m)) * gr.c
+                                  ) * 0.4
+                        ) as recommendation_score
+                from filtered_products fp
+                         left join sales s on s.product_id = fp.product_id
+                         left join rev rv on rv.product_id = fp.product_id
+                         left join lik lk on lk.product_id = fp.product_id
+                         cross join gr
+                order by recommendation_score desc
+            fetch first 32 rows only
+            )
+
+        -- 6) 32개만 최종 조인
+        select
+            s.product_id as productid,
+            b.brand_id as brandid,
+            s.product_name as productname,
+            b.brand_name_kr as productbrand,
+            floor(((100 - b.brand_discount) / 100) * s.price / 10) * 10 as productprice,
+            img.image_url as productimage,
+            b.brand_discount as discountrate,
+            case when upl.product_id is not null then 1 else 0 end as isliked
+        from scored s
+                 join brands b
+                      on b.brand_id = s.brand_id
+                 left join product_images img
+                           on img.product_id = s.product_id
+                               and img.image_type = 'main'
+                 left join user_product_likes upl
+                           on upl.product_id = s.product_id
+                               and upl.user_id = #{userid, jdbctype=varchar}
+        order by s.recommendation_score desc
+    </select>
+
+
+
 
     <select id="findOptionsByProductIds"
             resultType="com.avengers.musinsa.domain.product.dto.ProductOptionRow">
