@@ -235,7 +235,6 @@
                 order by recommendation_score desc
             fetch first 32 rows only
             )
-
         -- 6) 32개만 최종 조인
         select
             s.product_id as productid,
@@ -254,11 +253,9 @@
                                and img.image_type = 'main'
                  left join user_product_likes upl
                            on upl.product_id = s.product_id
-                               and upl.user_id = #{userid, jdbctype=varchar}
+                               and upl.user_id = #{userId, jdbcType=BIGINT}
         order by s.recommendation_score desc
     </select>
-
-
 
 
     <select id="findOptionsByProductIds"

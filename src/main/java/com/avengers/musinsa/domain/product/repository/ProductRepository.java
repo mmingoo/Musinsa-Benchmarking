@@ -38,6 +38,7 @@ public interface ProductRepository {
     List<String> findProductOptionSizes(Long productId);
 
     List<RecommendationResponse> getRecommendationProductList(Gender gender, Long userId);
+    List<RecommendationResponse> updateGetRecommendationProductList(Gender gender, Long userId);
 
     List<ProductOptionRow> findOptionRowsByProductId(List<Long> productIds);
 

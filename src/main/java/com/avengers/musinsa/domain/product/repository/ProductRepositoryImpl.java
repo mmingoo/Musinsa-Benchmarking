@@ -60,6 +60,11 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
+    public List<RecommendationResponse> updateGetRecommendationProductList(Gender gender, Long userId) {
+        return productMapper.updateGetRecommendationProductList(gender, userId);
+    }
+
+    @Override
     public List<ProductOptionRow> findOptionRowsByProductId(List<Long> productIds) {
         // 상품 ID 검증
         if (productIds == null || productIds.isEmpty()) {

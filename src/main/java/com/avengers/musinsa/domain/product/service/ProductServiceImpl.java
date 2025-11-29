@@ -58,6 +58,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<RecommendationResponse> getUpdateRecommendationProductList(Gender gender, Long userId) {
+        return productRepository.updateGetRecommendationProductList(gender, userId);
+    }
+
+    @Override
     public Map<Long, List<ProductsInCartInfoResponse.OptionGroup>> getGroupsByProductIds(List<Long> productIds) {
         // 상품 ID 검증
         if (productIds == null || productIds.isEmpty()) {

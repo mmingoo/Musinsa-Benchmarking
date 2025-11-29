@@ -20,6 +20,7 @@ public interface ProductMapper {
     ProductDetailResponse findProductById(@Param("productId") Long productId, @Param("userId") Long userId);
 
     List<RecommendationResponse> getRecommendationProductList(@Param("gender") Gender gender, @Param("userId") Long userId);
+    List<RecommendationResponse> updateGetRecommendationProductList(@Param("gender") Gender gender, @Param("userId") Long userId);
 
     List<ProductOptionRow> findOptionsByProductIds(@Param("productIds") List<Long> productIds);
 

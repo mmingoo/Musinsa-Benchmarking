@@ -19,6 +19,7 @@ public interface ProductService {
     List<ProductVariantDetailDto> getProductVariants(Long productId);
 
     List<RecommendationResponse> getRecommendationProductList(Gender gender, Long userId);
+    List<RecommendationResponse> getUpdateRecommendationProductList(Gender gender, Long userId);
 
 
     Map<Long, List<ProductsInCartInfoResponse.OptionGroup>> getGroupsByProductIds(List<Long> productIds);
