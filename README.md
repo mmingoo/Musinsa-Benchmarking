@@ -36,7 +36,8 @@ https://github.com/mmingoo/Musinsa-Benchmarking/blob/main/README.md#-%ED%94%84%E
 - **프로젝트 기간**: 2024.09.17 ~ 2024.10.10 (24일)
 - **프로젝트 유형**: 팀 프로젝트
 - **목적**: 대규모 이커머스 플랫폼의 핵심 기능 구현 및 성능 최적화
-- **추가자료**: [어벤져스_1팀_토이프로젝트1_erd.png:화면 정의서:발표자료.zip](https://github.com/user-attachments/files/22289218/_1._.1_erd.png.zip)
+- **추가자료**: [무신사 벤치마킹 최종 발표자료.pdf](https://github.com/user-attachments/files/24376488/default.pdf)
+
 
 ---
 
