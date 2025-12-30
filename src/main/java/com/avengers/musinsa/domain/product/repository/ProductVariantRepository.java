@@ -2,6 +2,7 @@ package com.avengers.musinsa.domain.product.repository;
 
 import com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest;
 import com.avengers.musinsa.domain.product.dto.response.ProductVariantDto;
+import com.avengers.musinsa.domain.product.entity.ProductVariant;
 
 import java.util.List;
 
@@ -13,5 +14,7 @@ public interface ProductVariantRepository {
     void batchDecrementStock(List<OrderCreateRequest.ProductLine> products);
 
     List<ProductVariantDto> findProductVariantsByOptionNames(List<OrderCreateRequest.ProductLine> products);
+
+    ProductVariant findByIdWithLock(Long productVariantId);
 
 }

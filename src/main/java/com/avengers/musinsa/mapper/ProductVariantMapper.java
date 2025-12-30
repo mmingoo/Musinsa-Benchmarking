@@ -2,6 +2,7 @@ package com.avengers.musinsa.mapper;
 
 import com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest;
 import com.avengers.musinsa.domain.product.dto.response.ProductVariantDto;
+import com.avengers.musinsa.domain.product.entity.ProductVariant;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -17,5 +18,7 @@ public interface ProductVariantMapper {
     void batchDecrementStock(@Param("products")List<OrderCreateRequest.ProductLine> products);
 
     List<ProductVariantDto> findProductVariantsByOptionNames(@Param("products") List<OrderCreateRequest.ProductLine> products);
+
+    ProductVariant findByIdWithLock(@Param("productVariantId") Long productVariantId);
 
 }

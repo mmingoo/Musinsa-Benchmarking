@@ -1,27 +1,27 @@
 package com.avengers.musinsa.domain.order.service;
 
-import com.avengers.musinsa.domain.order.dto.response.UserInfoDTO;
-
 import com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest;
 import com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest.ProductLine;
-import com.avengers.musinsa.domain.order.dto.response.OrderCreateResponse;
-import com.avengers.musinsa.domain.order.repository.OrderRepository;
-import java.util.List;
 import com.avengers.musinsa.domain.order.dto.response.*;
 import com.avengers.musinsa.domain.order.entity.Order;
 import com.avengers.musinsa.domain.order.repository.OrderRepository;
+import com.avengers.musinsa.domain.product.entity.ProductVariant;
 import com.avengers.musinsa.domain.product.repository.ProductVariantRepository;
 import com.avengers.musinsa.domain.shipments.dto.ShippingAddressOrderDTO;
 import com.avengers.musinsa.domain.user.dto.UserResponseDto;
 import com.avengers.musinsa.domain.user.repository.UserRepository;
+import com.avengers.musinsa.global.exception.OutOfStockException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -30,92 +30,130 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ProductVariantRepository productVariantRepository;
 
-    //주문자 기본정보 조회
+    @Qualifier("orderTaskExecutor")
+    private final Executor orderTaskExecutor;
+
+    // 주문자 기본정보 조회
     public UserInfoDTO getUserInfo(Long userId) {
         return orderRepository.getUserInfo(userId);
     }
 
-    //주문하기
+
+
+    // 주문하기
     @Transactional
-    public OrderCreateResponse createOrder(Long userId, OrderCreateRequest orderCreateRequest) {
-        // 배송 예정 정보ID, 배송 요청사항 타입ID, 배송 상태 ID와 여러 배송 정보 배송정보 테이블에 저장
-        // 과 동시에 배송테이블 ID 가져오기
-        Long shippingId = orderRepository.createShipment(orderCreateRequest);
-        System.out.println(shippingId);
+    public OrderCreateResponse createOrder(Long userId, OrderCreateRequest request) {
+        log.info("주문 시작 - userId: {}, 상품 개수: {}", userId, request.getProduct().size());
 
-        // 주문 정보 저장 후 주문 ID 가져오기
-        Long userAddressId = orderCreateRequest.getAddressId();
-        orderRepository.createOrder(userId, shippingId, orderCreateRequest.getPayment());
-        Long orderId = orderCreateRequest.getPayment().getOrderId();
+        // ========== Phase 1: 동기 처리 (필수, 실시간 정합성) ==========
 
-        // 주문서 상품 내역 주문한 상품들 순회하며 저장
-        List<OrderCreateRequest.ProductLine> orderProducts = orderCreateRequest.getProduct();
-        for (ProductLine orderProduct : orderProducts) {
+        // 1. 재고 확인 + 감소 (비관적 락)
+        for (ProductLine product : request.getProduct()) {
+            ProductVariant variant = productVariantRepository
+                    .findByIdWithLock(product.getVariantId()); // SELECT ... FOR UPDATE
 
-            orderRepository.createOrderItems(orderId, orderProduct, orderCreateRequest.getCouponId());
+            if (variant == null) {
+                throw new IllegalArgumentException("존재하지 않는 상품입니다. variantId: " + product.getVariantId());
+            }
 
-            // 재고 감소
-            productVariantRepository.decrementStock(orderProduct.getVariantId(), orderProduct.getQuantity());
+            if (variant.getStockQuantity() < product.getQuantity()) {
+                throw new OutOfStockException(
+                        String.format("재고 부족 - 상품: %s, 요청: %d개, 재고: %d개",
+                                variant.getVariantName(),
+                                product.getQuantity(),
+                                variant.getStockQuantity())
+                );
+            }
 
+            // 재고 즉시 감소 (같은 트랜잭션)
+            productVariantRepository.decrementStock(
+                    product.getVariantId(),
+                    product.getQuantity()
+            );
+
+            log.debug("재고 감소 완료 - variantId: {}, quantity: {}",
+                    product.getVariantId(), product.getQuantity());
         }
-        System.out.println("orderItems 샹성 완료");
 
-        // 상품 판매 내역 - 해야하는데 주문서 상품 내역 저장과 같은 방식이라 안 함
-        OrderCreateResponse orderCreateResponse = new OrderCreateResponse(orderId);
+        // 2. 주문 생성 (같은 트랜잭션)
+        Long orderId = createOrderEntity(userId, request);
+        log.info("주문 생성 완료 - orderId: {}", orderId);
 
-        return orderCreateResponse;
+        // ========== Phase 2: 비동기 처리 (부가 작업) ==========
+
+        // 3. OrderItems 생성 (비동기)
+        CompletableFuture.runAsync(() -> {
+            try {
+                orderRepository.batchCreateOrderItems(
+                        orderId,
+                        request.getProduct(),
+                        request.getCouponId()
+                );
+                log.info("OrderItems 생성 완료 (비동기) - orderId: {}", orderId);
+            } catch (Exception e) {
+                log.error("OrderItems 생성 실패 - orderId: {}", orderId, e);
+
+            }
+        }, orderTaskExecutor);
+
+        // TODO: 추가 비동기 작업
+        // - 알림 발송
+        // - 포인트 적립
+        // - 쿠폰 사용 처리
+
+        return new OrderCreateResponse(orderId);
     }
 
-    public OrderSummaryResponse.OrderSummaryDto getCompletionOrderSummary(Long orderId, Long userId) {
+    /**
+     * 주문 엔티티 생성 (private 메서드)
+     */
+    private Long createOrderEntity(Long userId, OrderCreateRequest request) {
+        // 배송 정보 저장
+        Long shippingId = orderRepository.createShipment(request);
 
-        // order 정보 가져오기 - orderCode, orderDate, 가격정보(총 금액, 할인 금액, 배송비, 최종금액)
+        // 주문 저장
+        orderRepository.createOrder(userId, shippingId, request.getPayment());
+
+        // 생성된 주문 ID 반환
+        return request.getPayment().getOrderId();
+    }
+
+    // 주문 완료 정보 조회
+    public OrderSummaryResponse.OrderSummaryDto getCompletionOrderSummary(Long orderId, Long userId) {
         Order order = orderRepository.getOrder(orderId);
 
-        System.out.println(order.getRecipientName());
-        System.out.println(order.getRecipientPhone());
-        System.out.println(order.getPostalCode());
-        System.out.println(order.getRecipientAddress());
+        UserResponseDto.UserNameAndEmailAndMobileDto userInfo =
+                userRepository.findUserNameAndEmailAndMobileById(userId);
 
-        // 회원 정보 가져오기(이름, 이메일, 전화번호) - Buyer(이름, 이메일, 폰번호)
-        UserResponseDto.UserNameAndEmailAndMobileDto userNameAndEmailAndMobile = userRepository.findUserNameAndEmailAndMobileById(
-                userId);
-
-        //주문한 상품 목록 가져오기
         List<OrderDto.OrderItemInfo> orderItems = orderRepository.findOrderItems(orderId);
 
-        //수령인 가져오기
-        ShippingAddressDto.shippingAddressDto shippingAddressDto = ShippingAddressDto.shippingAddressDto.builder()
-                .recipientName(order.getRecipientName())
-                .phone(order.getRecipientPhone())
-                .postCode(order.getPostalCode())
-                .address(order.getRecipientAddress())
-                .build();
+        ShippingAddressDto.shippingAddressDto shippingAddress =
+                ShippingAddressDto.shippingAddressDto.builder()
+                        .recipientName(order.getRecipientName())
+                        .phone(order.getRecipientPhone())
+                        .postCode(order.getPostalCode())
+                        .address(order.getRecipientAddress())
+                        .build();
 
-        //가격 설정
-        PriceInfoDto.priceInfoDto priceInfoDto = PriceInfoDto.priceInfoDto.builder()
+        PriceInfoDto.priceInfoDto priceInfo = PriceInfoDto.priceInfoDto.builder()
                 .finalPrice(order.getFinalPrice())
                 .orderDiscountAmount(order.getOrderDiscountAmount())
                 .shippingFee(order.getShippingFee())
                 .totalPrice(order.getTotalPrice())
                 .build();
 
-        //반환 Dto 설정
-        OrderSummaryResponse.OrderSummaryDto completionOrderSummaryResponse = OrderSummaryResponse.OrderSummaryDto.builder()
+        return OrderSummaryResponse.OrderSummaryDto.builder()
                 .orderCode(order.getOrderCode())
                 .orderDateTime(order.getOrderDateTime())
-                .buyerDto(userNameAndEmailAndMobile)
+                .buyerDto(userInfo)
                 .orderItemsDto(orderItems)
-                .shippingAddressDto(shippingAddressDto)
-                .priceInfoDto(priceInfoDto)
+                .shippingAddressDto(shippingAddress)
+                .priceInfoDto(priceInfo)
                 .build();
-
-        return completionOrderSummaryResponse;
     }
 
-    //배송지 목록 조회
+    // 배송지 목록 조회
     public List<ShippingAddressOrderDTO> getShippingAddressesUserId(Long userId) {
         return orderRepository.getShippingAddressesUserId(userId);
     }
-
 }
-

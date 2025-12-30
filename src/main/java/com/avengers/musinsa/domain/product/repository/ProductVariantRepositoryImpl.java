@@ -2,6 +2,7 @@ package com.avengers.musinsa.domain.product.repository;
 
 import com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest;
 import com.avengers.musinsa.domain.product.dto.response.ProductVariantDto;
+import com.avengers.musinsa.domain.product.entity.ProductVariant;
 import com.avengers.musinsa.mapper.ProductVariantMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -34,4 +35,9 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository{
     public List<ProductVariantDto> findProductVariantsByOptionNames(List<OrderCreateRequest.ProductLine> products) {
         return productVariantMapper.findProductVariantsByOptionNames(products);
     }
+    @Override
+    public ProductVariant findByIdWithLock(Long productVariantId) {
+        return productVariantMapper.findByIdWithLock(productVariantId);
+    }
+
 }

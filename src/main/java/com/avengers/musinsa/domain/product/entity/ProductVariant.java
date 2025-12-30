@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class ProductVariant {
-    private Integer productVariantId;
+    private Long productVariantId;
 
     private Product product;
     private Long productId;

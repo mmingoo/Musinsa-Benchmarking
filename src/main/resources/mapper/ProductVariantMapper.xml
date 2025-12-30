@@ -57,4 +57,21 @@
             (#{product.productId}, #{product.optionName})
         </foreach>
     </select>
+
+    <select id="findByIdWithLock" resultType="com.avengers.musinsa.domain.product.entity.ProductVariant">
+        SELECT
+        product_variant_id AS productVariantId,
+        product_id AS productId,
+        sku_code AS skuCode,
+        variant_name AS variantName,
+        price,
+        stock_quantity AS stockQuantity,
+        size_value AS sizeValue,
+        color_value AS colorValue,
+        material_value AS materialValue,
+        extra_price AS extraPrice
+        FROM product_variants
+        WHERE product_variant_id = #{productVariantId}
+        FOR UPDATE  <!-- 비관적 락: 다른 트랜잭션이 이 행을 수정하지 못하도록 락 -->
+    </select>
 </mapper>
