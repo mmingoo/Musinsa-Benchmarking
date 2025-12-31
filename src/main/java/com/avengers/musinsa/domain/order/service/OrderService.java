@@ -1,5 +1,6 @@
 package com.avengers.musinsa.domain.order.service;
 
+import com.avengers.musinsa.async.AsyncOrderHelper;
 import com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest;
 import com.avengers.musinsa.domain.order.dto.request.OrderCreateRequest.ProductLine;
 import com.avengers.musinsa.domain.order.dto.response.*;
@@ -29,6 +30,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final AsyncOrderHelper asyncOrderHelper;
 
     @Qualifier("orderTaskExecutor")
     private final Executor orderTaskExecutor;
@@ -47,10 +49,10 @@ public class OrderService {
 
         // ========== Phase 1: 동기 처리 (필수, 실시간 정합성) ==========
 
-        // 1. 재고 확인 + 감소 (비관적 락)
+        // 1. 재고 확인만 수행 (락 없이 빠른 조회)
         for (ProductLine product : request.getProduct()) {
             ProductVariant variant = productVariantRepository
-                    .findByIdWithLock(product.getVariantId()); // SELECT ... FOR UPDATE
+                    .findById(product.getVariantId()); // 락 없는 조회
 
             if (variant == null) {
                 throw new IllegalArgumentException("존재하지 않는 상품입니다. variantId: " + product.getVariantId());
@@ -64,15 +66,6 @@ public class OrderService {
                                 variant.getStockQuantity())
                 );
             }
-
-            // 재고 즉시 감소 (같은 트랜잭션)
-            productVariantRepository.decrementStock(
-                    product.getVariantId(),
-                    product.getQuantity()
-            );
-
-            log.debug("재고 감소 완료 - variantId: {}, quantity: {}",
-                    product.getVariantId(), product.getQuantity());
         }
 
         // 2. 주문 생성 (같은 트랜잭션)
@@ -82,28 +75,27 @@ public class OrderService {
         // ========== Phase 2: 비동기 처리 (부가 작업) ==========
 
         // 3. OrderItems 생성 (비동기)
-        CompletableFuture.runAsync(() -> {
-            try {
-                orderRepository.batchCreateOrderItems(
-                        orderId,
-                        request.getProduct(),
-                        request.getCouponId()
-                );
-                log.info("OrderItems 생성 완료 (비동기) - orderId: {}", orderId);
-            } catch (Exception e) {
-                log.error("OrderItems 생성 실패 - orderId: {}", orderId, e);
+        CompletableFuture<Void> orderItemsFuture = asyncOrderHelper.asyncBatchSaveOrderItems(
+                orderId,
+                request.getProduct(),
+                request.getCouponId()
+        );
 
-            }
-        }, orderTaskExecutor);
+        // 4. 재고 감소 (비동기) - 블로킹 작업 분리!
+        CompletableFuture<Void> stockFuture = asyncOrderHelper.asyncBatchDecrementStock(
+                request.getProduct()
+        );
 
-        // TODO: 추가 비동기 작업
-        // - 알림 발송
-        // - 포인트 적립
-        // - 쿠폰 사용 처리
+        // 5. 두 작업 모두 완료 대기 (논블로킹)
+        CompletableFuture.allOf(orderItemsFuture, stockFuture)
+                .exceptionally(ex -> {
+                    log.error("비동기 작업 실패 - orderId: {}", orderId, ex);
+                    // 실패 처리는 각 메서드에서 개별 처리
+                    return null;
+                });
 
         return new OrderCreateResponse(orderId);
     }
-
     /**
      * 주문 엔티티 생성 (private 메서드)
      */
