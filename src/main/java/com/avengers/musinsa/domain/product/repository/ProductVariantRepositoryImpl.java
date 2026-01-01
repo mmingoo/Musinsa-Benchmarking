@@ -40,4 +40,9 @@ public class ProductVariantRepositoryImpl implements ProductVariantRepository{
         return productVariantMapper.findByIdWithLock(productVariantId);
     }
 
+    @Override
+    public ProductVariant findById(Long productVariantId) {
+        return productVariantMapper.findById(productVariantId);
+    }
+
 }

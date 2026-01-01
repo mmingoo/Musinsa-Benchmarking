@@ -20,5 +20,5 @@ public interface ProductVariantMapper {
     List<ProductVariantDto> findProductVariantsByOptionNames(@Param("products") List<OrderCreateRequest.ProductLine> products);
 
     ProductVariant findByIdWithLock(@Param("productVariantId") Long productVariantId);
-
+    ProductVariant findById(@Param("productVariantId") Long productVariantId );
 }

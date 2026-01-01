@@ -68,6 +68,10 @@ public class OrderRepositoryImpl implements OrderRepository {
         orderMapper.batchCreateOrderItems(orderId, orderProducts, couponId);
     }
 
+    @Override
+    public void updateOrderStatus(Long orderId, String failed) {
+
+    }
 
 
 }

@@ -17,4 +17,5 @@ public interface ProductVariantRepository {
 
     ProductVariant findByIdWithLock(Long productVariantId);
 
+    ProductVariant findById(Long variantId);
 }

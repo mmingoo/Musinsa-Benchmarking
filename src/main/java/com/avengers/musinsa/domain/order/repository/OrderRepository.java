@@ -23,4 +23,6 @@ public interface OrderRepository {
     void createOrderItems(Long orderId, OrderCreateRequest.ProductLine orderProduct, Long couponId);
 
     void batchCreateOrderItems(Long orderId, List<OrderCreateRequest.ProductLine> orderProducts, Long couponId);
+
+    void updateOrderStatus(Long orderId, String failed);
 }
